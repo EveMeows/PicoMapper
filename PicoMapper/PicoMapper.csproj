@@ -19,8 +19,11 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <Compile Remove="Content\bin\**" />
     <Compile Remove="Content\obj\**" />
+    <EmbeddedResource Remove="Content\bin\**" />
     <EmbeddedResource Remove="Content\obj\**" />
+    <None Remove="Content\bin\**" />
     <None Remove="Content\obj\**" />
   </ItemGroup>
 	
@@ -36,5 +39,13 @@
 	
   <ItemGroup>
     <EditorConfigFiles Remove="C:\Users\Evelyn\Projects\PicoMapper\PicoMapper\.editorconfig" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\..\MonoGayme\MonoGayme.Core\MonoGayme.Core.csproj" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Folder Include="Models\" />
   </ItemGroup>
 </Project>
