@@ -54,6 +54,7 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                         }
 
                         this.active = this.Menus[name];
+                        editor.State = EditorState.MenuOpen;
                     }
                 }
             };

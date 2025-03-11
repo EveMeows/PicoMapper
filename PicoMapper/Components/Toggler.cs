@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonoGayme.Core.Abstractions;
 using MonoGayme.Core.Components;
 using MonoGayme.Core.Input;
