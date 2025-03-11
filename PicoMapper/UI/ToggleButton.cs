@@ -19,7 +19,9 @@ public class ToggleButton : Button
 
     public Selected Type;
 
-    public ToggleButton(Selected type, Texture2D texture, float scale, Vector2 position, bool ignoreMouse) : base(ignoreMouse)
+    public Keys Keybind;
+
+    public ToggleButton(Selected type, Texture2D texture, float scale, Vector2 position, Keys keybind) : base(false)
     {
         this.texture = texture;
         this.Position = position;
@@ -33,6 +35,7 @@ public class ToggleButton : Button
         this.Colour = Color.DarkGray;
 
         this.Type = type;
+        this.Keybind = keybind;
     }
 
     public void SetPositionY(float @new)

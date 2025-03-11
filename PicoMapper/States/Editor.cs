@@ -50,28 +50,25 @@ public class Editor(Mapper window) : State
                 this.NonIgnorableComponents.Update(time);
 
                 Vector2 mouse = InputHelper.GetMousePosition();
+                int delta = InputHelper.GetScrollDelta();
 
-                // Scroll bounds
-                if (mouse.Y > 20 && mouse.Y < window.GameSize.Y - 70)
-                { 
-                    int delta = InputHelper.GetScrollDelta();
-                    if (delta != 0)
-                    {
-                        Vector2 mouseBefore = this.camera.ScreenToWorld(mouse);
+                if (delta != 0)
+                {
+                    Vector2 mouseBefore = this.camera.ScreenToWorld(mouse);
 
-                        float zoom = delta * 0.001f;
-                        this.camera.Zoom = MathHelper.Clamp(this.camera.Zoom + zoom, 0.65f, 4.5f);
-                        
-                        Vector2 mouseAfter = this.camera.ScreenToWorld(mouse); 
+                    float zoom = delta * 0.001f;
+                    this.camera.Zoom = MathHelper.Clamp(this.camera.Zoom + zoom, 0.65f, 4.5f);
+                    
+                    Vector2 mouseAfter = this.camera.ScreenToWorld(mouse); 
 
-                        this.camera.Position -= Vector2.Floor(mouseAfter - mouseBefore);
-                    }
-
-                    if (InputHelper.IsMouseDown(MouseButton.Left))
-                    {
-                        this.camera.Position -= Vector2.Floor(InputHelper.GetMouseDelta() / this.camera.Zoom);
-                    }
+                    this.camera.Position -= Vector2.Floor(mouseAfter - mouseBefore);
                 }
+
+                if (InputHelper.IsMouseDown(MouseButton.Left) && this.toggler.Active == Selected.Move)
+                {
+                    this.camera.Position -= Vector2.Floor(InputHelper.GetMouseDelta() / this.camera.Zoom);
+                }
+
                 break;
             case EditorState.MenuOpen:
                 this.NonIgnorableComponents.Update(time);
@@ -85,7 +82,7 @@ public class Editor(Mapper window) : State
 
         // Map
         batch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: this.camera.Transform);
-            // batch.Draw(this.pixel, new Rectangle(30, 30, 100, 100), Color.Yellow);
+            batch.Draw(this.pixel, new Rectangle(30, 30, 100, 100), Color.Yellow);
         batch.End();
 
         // UI

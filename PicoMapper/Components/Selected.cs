@@ -3,5 +3,6 @@
 public enum Selected
 {
     Pencil, Eraser,
-    Bucket, Select
+    Bucket, Select,
+    Move
 }

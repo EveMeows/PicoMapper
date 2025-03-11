@@ -47,18 +47,18 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
     {
         if (self is ToggleButton btn)
         {
-            this.ToolTip = $"{btn.Type} Tool";
+            this.ToolTip = $"{btn.Type} Tool ({btn.Keybind})";
         }
     }
 
     private void OnExit(Button self)
         => this.ToolTip = "";
 
-    private ToggleButton CreateButton(Selected type, string path, float x)
+    private ToggleButton CreateButton(Selected type, string path, float x, Keys keybind)
     {
         return new ToggleButton(
             type, this.window.Content.Load<Texture2D>(path),
-            this.Scale, new Vector2(x, this.uiY), false
+            this.Scale, new Vector2(x, this.uiY), keybind
         ) { OnClick = this.OnToggle, OnHover = this.OnHover, OnMouseExit = this.OnExit };
     }
 
@@ -76,10 +76,11 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
 
         float offset = 5;
         this.buttons = [
-            this.CreateButton(Selected.Pencil, "UI/Buttons/Pencil", offset),
-            this.CreateButton(Selected.Eraser, "UI/Buttons/Eraser", this.SpriteSize + offset * 2),
-            this.CreateButton(Selected.Bucket, "UI/Buttons/Bucket", this.SpriteSize * 2 + offset * 3),
-            this.CreateButton(Selected.Select, "UI/Buttons/Move", this.SpriteSize * 3 + offset * 4),
+            this.CreateButton(Selected.Pencil, "UI/Buttons/Pencil", offset, Keys.D),
+            this.CreateButton(Selected.Eraser, "UI/Buttons/Eraser", this.SpriteSize + offset * 2, Keys.E),
+            this.CreateButton(Selected.Bucket, "UI/Buttons/Bucket", this.SpriteSize * 2 + offset * 3, Keys.B),
+            this.CreateButton(Selected.Select, "UI/Buttons/Move", this.SpriteSize * 3 + offset * 4, Keys.S),
+            this.CreateButton(Selected.Move, "UI/Buttons/Hand", this.SpriteSize * 4 + offset * 5, Keys.Space),
         ];
 
         this.buttons[0].Colour = Color.White;
@@ -92,6 +93,15 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
         foreach (ToggleButton btn in this.buttons)
         {
             btn.Update(InputHelper.GetMousePosition());
+
+            if (InputHelper.IsKeyPressed(btn.Keybind))
+            { 
+                foreach (ToggleButton others in this.buttons)
+                    others.Colour = Color.DarkGray;
+
+                btn.Colour = Color.White;
+                this.Active = btn.Type;
+            }
         }
     }
 
