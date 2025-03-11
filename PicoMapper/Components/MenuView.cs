@@ -33,13 +33,12 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
     private void BuildUI()
     {
         TextButton MakeButton(string name, float x)
-        { 
-            return new TextButton(
-                this.font, name, new Vector2(x, this.OffsetY), Color.White
-            ) 
+        {  
+            TextButton btn = new TextButton(this.font, name, new Vector2(x, this.OffsetY), Color.White) 
             {
                 OnMouseEnter = (self) => { self.Colour = Color.LightGray; }, 
-                OnMouseExit = (self) => { self.Colour = Color.White; },
+                OnMouseExit  = (self) => { self.Colour = Color.White; },
+
                 OnClick = (self) => {
                     State? state = this.window.Context.State;
                     if (state is null) return;
@@ -58,18 +57,19 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                     }
                 }
             };
+
+            return btn;
         }
 
         TextButton MakeMenuButton(string name, Vector2 position)
         {
-            return new TextButton(
-                this.font,
-                name, position, Color.White
-            )
+            TextButton btn = new TextButton(this.font, name, position, Color.White)
             {
                 OnMouseEnter = (self) => { self.Colour = Color.LightGray; }, 
-                OnMouseExit = (self) => { self.Colour = Color.White; },
+                OnMouseExit  = (self) => { self.Colour = Color.White; },
             };
+
+            return btn;
         }
 
         const float offset = 10;

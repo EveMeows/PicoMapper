@@ -10,7 +10,7 @@ using System.Security.Policy;
 
 namespace PicoMapper.States;
 
-public class Editor(Mapper window) : State
+public class Editor(Mapper window) : State, IStatedState
 {
     private readonly ComponentController NormalComponents = new ComponentController();
     private readonly ComponentController NonIgnorableComponents = new ComponentController();
@@ -57,7 +57,7 @@ public class Editor(Mapper window) : State
                     Vector2 mouseBefore = this.camera.ScreenToWorld(mouse);
 
                     float zoom = delta * 0.001f;
-                    this.camera.Zoom = MathHelper.Clamp(this.camera.Zoom + zoom, 0.65f, 4.5f);
+                    this.camera.Zoom = MathHelper.Clamp(this.camera.Zoom + zoom, 0.65f, 6f);
                     
                     Vector2 mouseAfter = this.camera.ScreenToWorld(mouse); 
 
@@ -66,7 +66,7 @@ public class Editor(Mapper window) : State
 
                 if (InputHelper.IsMouseDown(MouseButton.Left) && this.toggler.Active == Selected.Move)
                 {
-                    this.camera.Position -= Vector2.Floor(InputHelper.GetMouseDelta() / this.camera.Zoom);
+                    this.camera.Position -= InputHelper.GetMouseDelta() / this.camera.Zoom;
                 }
 
                 break;
@@ -82,7 +82,7 @@ public class Editor(Mapper window) : State
 
         // Map
         batch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: this.camera.Transform);
-            batch.Draw(this.pixel, new Rectangle(30, 30, 100, 100), Color.Yellow);
+            batch.Draw(this.pixel, new Rectangle(30, 30, 8, 8), Color.Yellow);
         batch.End();
 
         // UI
