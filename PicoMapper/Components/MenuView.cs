@@ -119,7 +119,7 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
             this.active.Update(time);
 
             if (
-                !Collision.CheckRectPoint(InputHelper.GetMousePosition(), this.active.Size) || 
+                !Collision.CheckRectPoint(InputHelper.GetMousePosition(), this.active.Size) &&
                 !Collision.CheckRectPoint(InputHelper.GetMousePosition(), new Rectangle(0, 0, (int)this.window.GameSize.X, this.BGSize))
             )
             {

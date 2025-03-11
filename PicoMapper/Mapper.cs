@@ -13,11 +13,8 @@ public class Mapper : Game
 
     public StateContext Context { get; } = new StateContext();
     public Vector2 GameSize { get; private set; }
-    public bool IsResized { get; private set; }
-
     private void SizeChanged(object? sender, EventArgs e)
     {
-        this.IsResized = true;
         this.GameSize = new Vector2(
             this.Window.ClientBounds.Width, 
             this.Window.ClientBounds.Height
@@ -51,8 +48,6 @@ public class Mapper : Game
 
         this.Context.Update(gameTime);
         base.Update(gameTime);
-
-        if (this.IsResized) this.IsResized = false;
     }
 
     protected override void Draw(GameTime gameTime)
