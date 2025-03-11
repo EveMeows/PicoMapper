@@ -88,12 +88,8 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
 
     public void Update(GameTime time)
     {
-        // In case the game size updates...
-        this.uiY = this.window.GameSize.Y - this.BGSize + 4; 
-
         foreach (ToggleButton btn in this.buttons)
         {
-            btn.SetPositionY(this.uiY);
             btn.Update(InputHelper.GetMousePosition());
         }
     }
@@ -124,6 +120,10 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
 
         foreach (ToggleButton btn in this.buttons)
         {
+            // In case the game size updates...
+            this.uiY = this.window.GameSize.Y - this.BGSize + 4;
+            btn.SetPositionY(this.uiY);
+
             btn.Draw(batch, camera);
         }
     }
