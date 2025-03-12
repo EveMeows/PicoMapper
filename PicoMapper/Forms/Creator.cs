@@ -19,7 +19,20 @@ public partial class Creator : Form
     private int? Validate(TextBox box)
     {
         if (int.TryParse(box.Text.Trim(), out int number))
+        {
+            if (number <= 0 || number > int.MaxValue)
+            { 
+                MessageBox.Show(
+                    "Seriously?", 
+                    "Input not valid!", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error
+                );
+
+                return null;
+            }
+
             return number;
+        }
 
         MessageBox.Show(
             $"The value \"{box.Text}\" is not valid! Please enter a valid number.", 
