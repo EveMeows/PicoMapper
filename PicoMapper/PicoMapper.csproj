@@ -44,8 +44,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\MonoGayme\MonoGayme.Core\MonoGayme.Core.csproj" />
   </ItemGroup>
-	
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
 </Project>

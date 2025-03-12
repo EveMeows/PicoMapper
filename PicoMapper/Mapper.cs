@@ -39,7 +39,7 @@ public class Mapper : Game
     protected override void LoadContent()
     {
         this.spriteBatch = new SpriteBatch(this.GraphicsDevice);
-        this.Context.SwitchState(new Editor(this));
+        this.Context.SwitchState(new Editor(this, new Models.Map { TileX = 8, TileY = 8, GridX = 10, GridY = 10}));
     }
 
     protected override void Update(GameTime gameTime)

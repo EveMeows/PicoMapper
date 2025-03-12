@@ -66,6 +66,7 @@ partial class Creator
         this.CreateMap.TabIndex = 3;
         this.CreateMap.Text = "Ok";
         this.CreateMap.UseVisualStyleBackColor = true;
+        this.CreateMap.Click += this.CreateMap_Click;
         // 
         // label1
         // 
