@@ -2,5 +2,5 @@
 
 public enum EditorState
 {
-    Normal, MenuOpen
+    Normal, MenuOpen, Dialog
 }

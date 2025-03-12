@@ -4,8 +4,12 @@ using Microsoft.Xna.Framework.Input;
 using MonoGayme.Core.Abstractions;
 using MonoGayme.Core.Components;
 using MonoGayme.Core.Input;
-using MonoGayme.Core.UI;
-using PicoMapper.UI;
+
+using Color = Microsoft.Xna.Framework.Color;
+using Button = MonoGayme.Core.UI.Button;
+using ToggleButton = PicoMapper.UI.ToggleButton;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace PicoMapper.Components;
 

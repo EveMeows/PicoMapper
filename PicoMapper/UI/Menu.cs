@@ -6,6 +6,12 @@ using MonoGayme.Core.Controllers;
 using MonoGayme.Core.Input;
 using MonoGayme.Core.UI;
 
+using Color = Microsoft.Xna.Framework.Color;
+using Button = MonoGayme.Core.UI.Button;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
+using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
+
 namespace PicoMapper.UI;
 
 public class Menu : Component, IUpdateableComponent, IDrawableComponent

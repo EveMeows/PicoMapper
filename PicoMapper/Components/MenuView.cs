@@ -10,6 +10,13 @@ using MonoGayme.Core.Utilities;
 using PicoMapper.States;
 using PicoMapper.UI;
 
+using Color = Microsoft.Xna.Framework.Color;
+using Button = MonoGayme.Core.UI.Button;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
+using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
+using PicoMapper.Forms;
+
 namespace PicoMapper.Components;
 
 public class MenuView : Component, IDrawableComponent, IUpdateableComponent
@@ -29,6 +36,14 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
     private Menu? active;
 
     private Dictionary<string, Menu> Menus = new Dictionary<string, Menu>();
+
+    #region Events
+    private void Create(Button? self = null)
+    { 
+        using Creator creator = new Creator(this.window);
+        creator.ShowDialog();
+    }
+    #endregion
 
     private void BuildUI()
     {
@@ -61,12 +76,13 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
             return btn;
         }
 
-        TextButton MakeMenuButton(string name, Vector2 position)
+        TextButton MakeMenuButton(string name, Vector2 position, Action<Button>? click = null)
         {
             TextButton btn = new TextButton(this.font, name, position, Color.White)
             {
-                OnMouseEnter = (self) => { self.Colour = Color.LightGray; }, 
+                OnMouseEnter = (self) => { self.Colour = Color.LightGray; },
                 OnMouseExit  = (self) => { self.Colour = Color.White; },
+                OnClick = click
             };
 
             return btn;
@@ -75,7 +91,7 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         const float offset = 10;
 
         Menu file = new Menu(new Rectangle(0, this.BGSize, 183, 105), this.window);
-        file.Buttons.Add(MakeMenuButton("NEW               CTRL + N", new Vector2(5, this.BGSize + offset)));
+        file.Buttons.Add(MakeMenuButton("NEW               CTRL + N", new Vector2(5, this.BGSize + offset), this.Create));
         file.Buttons.Add(MakeMenuButton("OPEN...        CTRL + O", new Vector2(5, this.BGSize + offset * 3)));
         file.Buttons.Add(MakeMenuButton("SAVE            CTRL + S", new Vector2(5, this.BGSize + offset * 5)));
         file.Buttons.Add(MakeMenuButton("SAVE AS...  CTRL + SHIFT + S", new Vector2(5, this.BGSize + offset * 7)));
@@ -134,6 +150,14 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                     if (state is Editor editor)
                         editor.State = EditorState.Normal;
                 }
+            }
+        }
+
+        if (InputHelper.IsKeyDown(Keys.LeftControl))
+        {
+            if (InputHelper.IsKeyPressed(Keys.N))
+            {
+                this.Create();
             }
         }
     }

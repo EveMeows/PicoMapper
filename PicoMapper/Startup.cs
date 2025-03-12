@@ -1,2 +1,11 @@
-﻿using var game = new PicoMapper.Mapper();
-game.Run();
+﻿namespace PicoMapper;
+
+public static class PicoMapper
+{
+    [STAThread]
+    public static void Main()
+    { 
+        using var game = new Mapper();
+        game.Run();
+    }
+}

@@ -1,12 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using MonoGayme.Core.Components;
 using MonoGayme.Core.Controllers;
 using MonoGayme.Core.Input;
 using MonoGayme.Core.States;
 using PicoMapper.Components;
-using System.Security.Policy;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace PicoMapper.States;
 
@@ -70,8 +69,12 @@ public class Editor(Mapper window) : State, IStatedState
                 }
 
                 break;
+
             case EditorState.MenuOpen:
                 this.NonIgnorableComponents.Update(time);
+                break;
+
+            default:
                 break;
         }
     }
@@ -82,7 +85,7 @@ public class Editor(Mapper window) : State, IStatedState
 
         // Map
         batch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: this.camera.Transform);
-            batch.Draw(this.pixel, new Rectangle(30, 30, 8, 8), Color.Yellow);
+            // batch.Draw(this.pixel, new Rectangle(30, 30, 8, 8), Color.Yellow);
         batch.End();
 
         // UI
