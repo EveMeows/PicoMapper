@@ -38,16 +38,16 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     private void DrawBorders(SpriteBatch batch)
     { 
         // Top
-        batch.Draw(this.pixel, new Rectangle(0, -this.GridThick, map.GridX * map.TileX, this.GridThick), Color.White);
+        batch.Draw(this.pixel, new Rectangle(0, -this.GridThick, map.GridX * map.TileX, this.GridThick), Colours.DarkGrey);
 
         // Left   
-        batch.Draw(this.pixel, new Rectangle(-this.GridThick, 0, this.GridThick, map.GridY * map.TileY), Color.White);
+        batch.Draw(this.pixel, new Rectangle(-this.GridThick, 0, this.GridThick, map.GridY * map.TileY), Colours.DarkGrey);
 
         // Bottom
-        batch.Draw(this.pixel, new Rectangle(0, map.GridY * map.TileY, map.GridX * map.TileX, this.GridThick), Color.White);
+        batch.Draw(this.pixel, new Rectangle(0, map.GridY * map.TileY, map.GridX * map.TileX, this.GridThick), Colours.DarkGrey);
 
         // Right
-        batch.Draw(this.pixel, new Rectangle(map.GridX * map.TileX, 0, this.GridThick, map.GridY * map.TileY), Color.White);
+        batch.Draw(this.pixel, new Rectangle(map.GridX * map.TileX, 0, this.GridThick, map.GridY * map.TileY), Colours.DarkGrey);
     }
 
     public void DrawRectangleLines(float x, float y, float width, float height, Color colour, SpriteBatch batch, float alpha = 1)
@@ -161,11 +161,12 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         batch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: this.camera.Transform);
             this.DrawBorders(batch);
 
+            // Draw cursor
             if (Collision.CheckRectPoint(this.camera.ScreenToWorld(InputHelper.GetMousePosition()), this.bounds))
             {
                 this.DrawRectangleLines(
                     this.mapMouse.X * map.TileX, this.mapMouse.Y * map.TileY,
-                    map.TileX, map.TileY, Color.DarkGray, batch
+                    map.TileX, map.TileY, Color.White, batch
                 );
             }
         batch.End();

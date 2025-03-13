@@ -49,8 +49,6 @@ public partial class Creator : Form
     private void Creator_Load(object sender, EventArgs e)
     {
         State? state = this.window.Context.State;
-        if (state is null) return;
-
         if (state is IStatedState stated)
         {
             stated.State = EditorState.Dialog;
@@ -60,8 +58,6 @@ public partial class Creator : Form
     private void Creator_FormClosed(object sender, FormClosedEventArgs e)
     {
         State? state = this.window.Context.State;
-        if (state is null) return;
-
         if (state is IStatedState stated)
         {
             stated.State = EditorState.Normal;

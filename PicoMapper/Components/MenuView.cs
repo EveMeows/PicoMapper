@@ -56,8 +56,6 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
                 OnClick = (self) => {
                     State? state = this.window.Context.State;
-                    if (state is null) return;
-
                     if (state is Editor editor)
                     { 
                         if (this.active == this.Menus[name])
@@ -145,8 +143,6 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                     this.active = null;
                     
                     State? state = this.window.Context.State;
-                    if (state is null) return;
-
                     if (state is Editor editor)
                         editor.State = EditorState.Normal;
                 }
