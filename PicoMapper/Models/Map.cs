@@ -4,20 +4,23 @@ namespace PicoMapper.Models;
 
 public class Map
 {
-    [JsonPropertyName("GridX")]
+    [JsonPropertyName("grid_x")]
     public int GridX { get; set; }
 
-    [JsonPropertyName("GridY")]
+    [JsonPropertyName("grid_y")]
     public int GridY { get; set; }
 
 
-    [JsonPropertyName("TileX")]
+    [JsonPropertyName("tile_x")]
     public int TileX { get; set; }
 
-    [JsonPropertyName("TileY")]
+    [JsonPropertyName("tile_y")]
     public int TileY { get; set; }
 
 
-    [JsonPropertyName("Layers")]
+    [JsonPropertyName("tiles")]
+    public List<Tile> Tiles { get; set; } = null!;
+
+    [JsonPropertyName("layers")]
     public List<int[,]> Layers { get; set; } = null!;
 }

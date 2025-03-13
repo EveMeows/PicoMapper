@@ -82,7 +82,7 @@ public partial class Creator : Form
         { 
             TileX = tileX.Value, TileY = tileY.Value,
             GridX = mapX.Value,  GridY = mapY.Value,
-            Layers = []
+            Layers = [], Tiles = []
         };
 
         this.window.Context.SwitchState(new Editor(this.window, map));

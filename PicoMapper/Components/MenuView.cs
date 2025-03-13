@@ -43,6 +43,18 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         using Creator creator = new Creator(this.window);
         creator.ShowDialog();
     }
+
+    private void NewTile(Button? self = null)
+    {
+        using AddTile newTile = new AddTile(this.window);
+        newTile.ShowDialog();
+    }
+
+    private void RemoveTile(Button? self = null)
+    { 
+        using RemoveTile removeTile = new RemoveTile(this.window);
+        removeTile.ShowDialog();
+    }
     #endregion
 
     private void BuildUI()
@@ -109,9 +121,15 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         view.Buttons.Add(MakeMenuButton("ZOOM OUT    -", new Vector2(83, this.BGSize + offset * 3)));
         this.Menus.Add("VIEW", view);
 
+        Menu tiles = new Menu(new Rectangle(115, this.BGSize, 158, 45), this.window);
+        tiles.Buttons.Add(MakeMenuButton("ADD TILE            CTRL + A", new Vector2(120, this.BGSize + offset), this.NewTile));
+        tiles.Buttons.Add(MakeMenuButton("REMOVE TILE    CTRL + R", new Vector2(120, this.BGSize + offset * 3), this.RemoveTile));
+        this.Menus.Add("TILES", tiles);
+
         this.ui.Add(MakeButton("FILE", 2));
         this.ui.Add(MakeButton("EDIT", 40));
         this.ui.Add(MakeButton("VIEW", 78));
+        this.ui.Add(MakeButton("TILES", 115));
     }
     
     public MenuView(Mapper window)
@@ -154,6 +172,17 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
             if (InputHelper.IsKeyPressed(Keys.N))
             {
                 this.Create();
+            }
+
+
+            if (InputHelper.IsKeyPressed(Keys.A))
+            {
+                this.NewTile();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.R))
+            {
+                this.RemoveTile();
             }
         }
     }

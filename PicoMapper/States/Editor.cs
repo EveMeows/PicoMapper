@@ -7,8 +7,11 @@ using MonoGayme.Core.States;
 using MonoGayme.Core.Utilities;
 using PicoMapper.Components;
 using PicoMapper.Models;
+
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
+using PicoMapper.Forms;
 
 namespace PicoMapper.States;
 
@@ -20,7 +23,12 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     private Toggler toggler = null!;
     private MenuView menu = null!;
 
-    public Camera2D camera = null!;
+    public Camera2D Camera = null!;
+
+    public readonly Map Map = map;
+    public readonly Dictionary<int, Texture2D> TileCache = new Dictionary<int, Texture2D>();
+    private int activeLayer = 0;
+    public int ActiveTile = 0;
 
     public EditorState State { get; set; } = EditorState.Normal;
 
@@ -31,23 +39,23 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     private readonly int MapStart = 0;
     private Rectangle bounds;
 
-    private Vector2 mapMouse = new Vector2();
+    public Vector2 MapMouseCoords = new Vector2();
     private bool justExited = false;
 
     #region Drawing
     private void DrawBorders(SpriteBatch batch)
     { 
         // Top
-        batch.Draw(this.pixel, new Rectangle(0, -this.GridThick, map.GridX * map.TileX, this.GridThick), Colours.DarkGrey);
+        batch.Draw(this.pixel, new Rectangle(0, -this.GridThick, this.Map.GridX * this.Map.TileX, this.GridThick), Colours.DarkGrey);
 
         // Left   
-        batch.Draw(this.pixel, new Rectangle(-this.GridThick, 0, this.GridThick, map.GridY * map.TileY), Colours.DarkGrey);
+        batch.Draw(this.pixel, new Rectangle(-this.GridThick, 0, this.GridThick, this.Map.GridY * this.Map.TileY), Colours.DarkGrey);
 
         // Bottom
-        batch.Draw(this.pixel, new Rectangle(0, map.GridY * map.TileY, map.GridX * map.TileX, this.GridThick), Colours.DarkGrey);
+        batch.Draw(this.pixel, new Rectangle(0, this.Map.GridY * this.Map.TileY, this.Map.GridX * this.Map.TileX, this.GridThick), Colours.DarkGrey);
 
         // Right
-        batch.Draw(this.pixel, new Rectangle(map.GridX * map.TileX, 0, this.GridThick, map.GridY * map.TileY), Colours.DarkGrey);
+        batch.Draw(this.pixel, new Rectangle(this.Map.GridX * this.Map.TileX, 0, this.GridThick, this.Map.GridY * this.Map.TileY), Colours.DarkGrey);
     }
 
     public void DrawRectangleLines(float x, float y, float width, float height, Color colour, SpriteBatch batch, float alpha = 1)
@@ -71,10 +79,12 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         this.toggler = new Toggler(window);
         this.NormalComponents.Add(this.toggler);
 
+        this.NormalComponents.Add(new TileViewer(window, this));
+
         this.menu = new MenuView(window);
         this.NonIgnorableComponents.Add(this.menu);
 
-        this.camera = new Camera2D(new Vector2(map.TileX * map.GridX / 2, map.TileY * map.GridY / 2), 2, new Vector2(window.GameSize.X / 2, window.GameSize.Y / 2));
+        this.Camera = new Camera2D(new Vector2(this.Map.TileX * this.Map.GridX / 2, this.Map.TileY * this.Map.GridY / 2), 2, new Vector2(window.GameSize.X / 2, window.GameSize.Y / 2));
 
         this.pixel = new Texture2D(window.GraphicsDevice, 1, 1);
         this.pixel.SetData([Color.White]);
@@ -83,12 +93,33 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
         if (path is null)
         {
-            window.Window.Title = "PicoMapper (untitiled.pm)";
+            window.Window.Title = "PicoMapper (untitiled.p8m)";
+        }
+        else 
+        {
+            window.Window.Title = $"PicoMapper ({path})";
+
+            this.TileCache.Clear();
+            foreach (Tile tile in this.Map.Tiles)
+            {
+                bool success = this.TileCache.TryAdd(tile.ID, tile.Texture);
+                if (!success)
+                {
+                    MessageBox.Show(
+                        "Something went wrong while trying to refresh tile cache. The app will now close.",
+                        "Critical Error!",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error
+                    );
+
+                    window.Exit();
+                    return;
+                }
+            }
         }
 
         this.bounds = new Rectangle(
             this.MapStart, this.MapStart,
-            map.TileX * map.GridX, map.TileY * map.GridY
+            this.Map.TileX * this.Map.GridX, this.Map.TileY * this.Map.GridY
         );
     }
 
@@ -100,18 +131,63 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 this.NormalComponents.Update(time);
                 this.NonIgnorableComponents.Update(time);
 
-                Vector2 mouse = InputHelper.GetMousePosition();
-                Vector2 mouseWorld = this.camera.ScreenToWorld(mouse);
+                if (InputHelper.IsKeyDown(Keys.LeftControl))
+                {
+                    if (InputHelper.IsKeyPressed(Keys.A))
+                    {
+                        this.State = EditorState.Dialog;
 
-                // Show map coords.
+                        using AddTile tile = new AddTile(window);
+                        tile.ShowDialog();
+                    }
+                }
+
+                // Create layer if it doesnt exist.
+                if (this.Map.Layers.Count - 1 < this.activeLayer)
+                {
+                    this.Map.Layers.Add(new int[this.Map.GridX, this.Map.GridY]);
+                }
+
+                Vector2 mouse = InputHelper.GetMousePosition();
+                Vector2 mouseWorld = this.Camera.ScreenToWorld(mouse);
+
                 if (Collision.CheckRectPoint(mouseWorld, this.bounds))
                 {
                     this.justExited = false;
 
-                    this.mapMouse = new Vector2(mouseWorld.X / map.TileX, mouseWorld.Y / map.TileY);
-                    this.mapMouse.Floor();
+                    this.MapMouseCoords = new Vector2(mouseWorld.X / this.Map.TileX, mouseWorld.Y / this.Map.TileY);
+                    this.MapMouseCoords.Floor();
 
-                    this.toggler.ToolTip = $"X: {this.mapMouse.X} Y: {this.mapMouse.Y}";
+                    this.toggler.ToolTip = $"X: {this.MapMouseCoords.X} Y: {this.MapMouseCoords.Y}";
+
+                    if (InputHelper.IsMouseDown(MouseButton.Left))
+                    {
+                        int[,] layer = this.Map.Layers[this.activeLayer];
+
+                        switch (this.toggler.Active)
+                        {
+                            case Selected.Pencil:
+                                // Skip if selected tile is reserved.
+                                if (this.ActiveTile == 0)
+                                    break;
+
+                                layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = this.ActiveTile;
+
+                                break;
+
+                            case Selected.Eraser:
+                                // Skip if selected tile is reserved.
+                                if (this.ActiveTile == 0)
+                                    break;
+
+                                layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = 0;
+
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
                 }
                 else
                 {
@@ -127,19 +203,19 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
                 if (delta != 0)
                 {
-                    Vector2 mouseBefore = this.camera.ScreenToWorld(mouse);
+                    Vector2 mouseBefore = this.Camera.ScreenToWorld(mouse);
 
                     float zoom = delta * 0.001f;
-                    this.camera.Zoom = MathHelper.Clamp(this.camera.Zoom + zoom, 0.65f, 6f);
+                    this.Camera.Zoom = MathHelper.Clamp(this.Camera.Zoom + zoom, 0.65f, 6f);
                     
-                    Vector2 mouseAfter = this.camera.ScreenToWorld(mouse); 
+                    Vector2 mouseAfter = this.Camera.ScreenToWorld(mouse); 
 
-                    this.camera.Position -= Vector2.Floor(mouseAfter - mouseBefore);
+                    this.Camera.Position -= Vector2.Floor(mouseAfter - mouseBefore);
                 }
 
                 if (InputHelper.IsMouseDown(MouseButton.Left) && this.toggler.Active == Selected.Move)
                 {
-                    this.camera.Position -= InputHelper.GetMouseDelta() / this.camera.Zoom;
+                    this.Camera.Position -= InputHelper.GetMouseDelta() / this.Camera.Zoom;
                 }
 
                 break;
@@ -158,15 +234,41 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         window.GraphicsDevice.Clear(Color.Black);
 
         // Map
-        batch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: this.camera.Transform);
+        batch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: this.Camera.Transform);
             this.DrawBorders(batch);
 
+            // Draw map
+            foreach (int[,] layer in this.Map.Layers)
+            {
+                for (int x = 0; x < layer.GetLength(0); x++)
+                {
+                    for (int y = 0; y < layer.GetLength(1); y++)
+                    {
+                        if (layer[x, y] == 0) continue;
+
+                        bool success = this.TileCache.TryGetValue(layer[x, y], out Texture2D? texture);
+                        if (!success)
+                        {
+                            MessageBox.Show(
+                                "Something went wrong trying to draw the map. The app will now close.",
+                                "Critical Error!",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error
+                            );
+
+                            Environment.Exit(1);
+                        }
+
+                        batch.Draw(texture, new Vector2(x * this.Map.TileX, y * this.Map.TileY), Color.White);
+                    }
+                }
+            }
+
             // Draw cursor
-            if (Collision.CheckRectPoint(this.camera.ScreenToWorld(InputHelper.GetMousePosition()), this.bounds))
+            if (Collision.CheckRectPoint(this.Camera.ScreenToWorld(InputHelper.GetMousePosition()), this.bounds))
             {
                 this.DrawRectangleLines(
-                    this.mapMouse.X * map.TileX, this.mapMouse.Y * map.TileY,
-                    map.TileX, map.TileY, Color.White, batch
+                    this.MapMouseCoords.X * this.Map.TileX, this.MapMouseCoords.Y * this.Map.TileY,
+                    this.Map.TileX, this.Map.TileY, Color.White, batch
                 );
             }
         batch.End();
@@ -176,6 +278,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             this.NormalComponents.Draw(batch);
             this.NonIgnorableComponents.Draw(batch);
 
+            // batch.DrawString(this.font, $"Tiles: {this.TileCache.Count}, {this.Map.Tiles.Count}", new Vector2(5, 130), Color.White);
             // batch.DrawString(this.font, $"Zoom: {this.camera.Zoom}", new Vector2(5, 130), Color.White);
             // batch.DrawString(this.font, $"Position: {this.camera.Position}", new Vector2(5, 155), Color.White);
             // batch.DrawString(this.font, $"State: {this.State}", new Vector2(5, 180), Color.White);

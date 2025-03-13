@@ -146,6 +146,7 @@ partial class Creator
         this.MaximizeBox = false;
         this.Name = "Creator";
         this.ShowInTaskbar = false;
+        this.StartPosition = FormStartPosition.CenterParent;
         this.Text = "New Map";
         this.TopMost = true;
         this.FormClosed += this.Creator_FormClosed;

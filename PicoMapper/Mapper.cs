@@ -13,6 +13,7 @@ public class Mapper : Game
 
     public StateContext Context { get; } = new StateContext();
     public Vector2 GameSize { get; private set; }
+
     private void SizeChanged(object? sender, EventArgs e)
     {
         this.GameSize = new Vector2(
@@ -39,7 +40,7 @@ public class Mapper : Game
     protected override void LoadContent()
     {
         this.spriteBatch = new SpriteBatch(this.GraphicsDevice);
-        this.Context.SwitchState(new Editor(this, new Models.Map { TileX = 8, TileY = 8, GridX = 10, GridY = 10}));
+        this.Context.SwitchState(new Editor(this, new Models.Map { TileX = 8, TileY = 8, GridX = 10, GridY = 10, Layers = [], Tiles = [] }));
     }
 
     protected override void Update(GameTime gameTime)
