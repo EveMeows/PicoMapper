@@ -129,7 +129,6 @@ public class TileViewer : Component, IDrawableComponent, IUpdateableComponent
             }
         }
 
-
         this.ui.Update(InputHelper.GetMousePosition());
     }
 

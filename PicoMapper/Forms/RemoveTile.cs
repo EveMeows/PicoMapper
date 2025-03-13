@@ -39,7 +39,24 @@ public partial class RemoveTile : Form
             editor.TileCache.Clear();
             foreach (Tile tile in editor.Map.Tiles)
             {
-                bool success = editor.TileCache.TryAdd(tile.ID, tile.Texture);
+                Texture2D texture;
+                try
+                {
+                    using FileStream stream = new FileStream(tile.Path, FileMode.Open, FileAccess.Read);
+                    texture = Texture2D.FromStream(this.window.GraphicsDevice, stream);
+                }
+                catch (Exception err)
+                {
+                    MessageBox.Show(
+                        $"An error occoured parsing the texture: {err.Message}",
+                        "Invalid Input!",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error
+                    );
+
+                    return;
+                }
+
+                bool success = editor.TileCache.TryAdd(tile.ID, texture);
                 if (!success)
                 {
                     MessageBox.Show(

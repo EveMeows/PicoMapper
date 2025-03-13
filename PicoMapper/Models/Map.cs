@@ -22,5 +22,6 @@ public class Map
     public List<Tile> Tiles { get; set; } = null!;
 
     [JsonPropertyName("layers")]
+    [JsonConverter(typeof(LayerConverter))]
     public List<int[,]> Layers { get; set; } = null!;
 }

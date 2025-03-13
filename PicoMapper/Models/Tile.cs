@@ -8,6 +8,6 @@ public class Tile
     [JsonPropertyName("id")]
     public int ID { get; set; }
 
-    [JsonPropertyName("texture")]
-    public required Texture2D Texture { get; set; }
+    [JsonPropertyName("path")]
+    public required string Path { get; set; }
 }

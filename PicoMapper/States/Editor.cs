@@ -12,6 +12,7 @@ using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 using PicoMapper.Forms;
+using System.Text.Json;
 
 namespace PicoMapper.States;
 
@@ -102,7 +103,24 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             this.TileCache.Clear();
             foreach (Tile tile in this.Map.Tiles)
             {
-                bool success = this.TileCache.TryAdd(tile.ID, tile.Texture);
+                Texture2D texture;
+                try
+                {
+                    using FileStream stream = new FileStream(tile.Path, FileMode.Open, FileAccess.Read);
+                    texture = Texture2D.FromStream(window.GraphicsDevice, stream);
+                }
+                catch (Exception err)
+                {
+                    MessageBox.Show(
+                        $"An error occoured parsing the texture: {err.Message}",
+                        "Invalid Input!",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error
+                    );
+
+                    return;
+                }
+
+                bool success = this.TileCache.TryAdd(tile.ID, texture);
                 if (!success)
                 {
                     MessageBox.Show(
@@ -112,7 +130,6 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                     );
 
                     window.Exit();
-                    return;
                 }
             }
         }
@@ -145,7 +162,10 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 // Create layer if it doesnt exist.
                 if (this.Map.Layers.Count - 1 < this.activeLayer)
                 {
-                    this.Map.Layers.Add(new int[this.Map.GridX, this.Map.GridY]);
+                    int[,] layer = new int[this.Map.GridX, this.Map.GridY];
+                    Array.Clear(layer, 0, layer.Length);
+
+                    this.Map.Layers.Add(layer);
                 }
 
                 Vector2 mouse = InputHelper.GetMousePosition();
