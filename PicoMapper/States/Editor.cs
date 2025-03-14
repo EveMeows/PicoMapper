@@ -173,6 +173,44 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         }
     }
 
+    // BFS Based FloodFill algo. God help me.
+    // And thank you GfG
+    private void FloodFill(int x, int y)
+    {
+        int col = this.Map.Layers[this.activeLayer].GetLength(0);
+        int row = this.Map.Layers[this.activeLayer].GetLength(1);
+
+        Queue<(int, int)> floodQueue = new Queue<(int, int)>();
+        floodQueue.Enqueue((x, y));
+
+        int old = this.Map.Layers[this.activeLayer][x, y];
+        this.Map.Layers[this.activeLayer][x, y] = this.ActiveTile;
+
+        int[] dx = [ -1, 1, 0, 0 ];
+        int[] dy = [ 0, 0, -1, 1 ];
+
+        while (floodQueue.Count > 0)
+        {
+            (int ox, int oy) = floodQueue.Dequeue();
+
+            for (int i = 0; i < 4; i++)
+            {
+                int nx = ox + dx[i];
+                int ny = oy + dy[i];
+
+                if (
+                    nx >= 0 && nx < col &&
+                    ny >= 0 && ny < row &&
+                    this.Map.Layers[this.activeLayer][nx, ny] == old
+                )
+                {
+                    this.Map.Layers[this.activeLayer][nx, ny] = this.ActiveTile;
+                    floodQueue.Enqueue((nx, ny));
+                }
+            }
+        }
+    }
+
     public override void LoadContent()
     {
         this.NormalComponents.Add(new TileViewer(window, this));
@@ -288,6 +326,14 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                     break;
 
                                 layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = 0;
+
+                                break;
+
+                            case Selected.Bucket:
+                                if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] == this.ActiveTile)
+                                    break;
+
+                                this.FloodFill((int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y);
 
                                 break;
 
