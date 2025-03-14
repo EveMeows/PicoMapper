@@ -35,39 +35,7 @@ public partial class RemoveTile : Form
 
             // Refresh cache.
             if (!this.removed) return;
-
-            editor.TileCache.Clear();
-            foreach (Tile tile in editor.Map.Tiles)
-            {
-                Texture2D texture;
-                try
-                {
-                    using FileStream stream = new FileStream(tile.Path, FileMode.Open, FileAccess.Read);
-                    texture = Texture2D.FromStream(this.window.GraphicsDevice, stream);
-                }
-                catch (Exception err)
-                {
-                    MessageBox.Show(
-                        $"An error occoured parsing the texture: {err.Message}",
-                        "Invalid Input!",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error
-                    );
-
-                    return;
-                }
-
-                bool success = editor.TileCache.TryAdd(tile.ID, texture);
-                if (!success)
-                {
-                    MessageBox.Show(
-                        "Something went wrong while trying to refresh tile cache. The app will now close.",
-                        "Critical Error!",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error
-                    );
-
-                    this.window.Exit();
-                }
-            }
+            if (!Utilities.RefreshCache(this.window, editor)) return;
         }
     }
 

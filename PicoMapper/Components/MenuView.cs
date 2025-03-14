@@ -136,7 +136,7 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
         Menu file = new Menu(new Rectangle(0, this.BGSize, 183, 105), this.window);
         file.Buttons.Add(MakeMenuButton("NEW               CTRL + N", new Vector2(5, this.BGSize + offset), this.Create));
-        file.Buttons.Add(MakeMenuButton("OPEN...        CTRL + O", new Vector2(5, this.BGSize + offset * 3), (self) => { this.editor.Open(); }));
+        file.Buttons.Add(MakeMenuButton("OPEN...        CTRL + O", new Vector2(5, this.BGSize + offset * 3), (self) => { Utilities.Open(this.window); }));
         file.Buttons.Add(MakeMenuButton("SAVE            CTRL + S", new Vector2(5, this.BGSize + offset * 5), (self) => { this.editor.Save(); }));
         file.Buttons.Add(MakeMenuButton("SAVE AS...  CTRL + SHIFT + S", new Vector2(5, this.BGSize + offset * 7), (self) => { this.editor.SaveAs(); }));
         file.Buttons.Add(MakeMenuButton("EXIT", new Vector2(5, this.BGSize + offset * 9), (self) => { this.window.Exit(); }));
@@ -230,7 +230,7 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
             if (InputHelper.IsKeyPressed(Keys.O))
             {
-                this.editor.Open();
+                Utilities.Open(this.window);
             }
 
             if (InputHelper.IsKeyPressed(Keys.N))

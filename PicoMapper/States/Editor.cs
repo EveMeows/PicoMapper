@@ -141,38 +141,6 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         }
     }
 
-    public void Open()
-    {
-        try
-        {
-            using OpenFileDialog file = new OpenFileDialog();
-            file.Filter = "Pico Mapper Files (.p8m)|*.p8m";
-            file.Title = "Open map.";
-
-            DialogResult result = file.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                if (file.FileName.Trim() != string.Empty)
-                {
-                    string json = File.ReadAllText(file.FileName.Trim());
-                    Map? map = JsonSerializer.Deserialize<Map>(json) ?? throw new JsonException("Invalid map data given.");
-
-                    window.Context.SwitchState(new Editor(window, map, file.FileName.Trim()));
-                }
-            }
-        }
-        catch (Exception e)
-        { 
-            MessageBox.Show(
-                $"Could not open file: {e.Message}",
-                "Error opening file!",
-                MessageBoxButtons.OK, MessageBoxIcon.Error
-            );
-
-            return;
-        }
-    }
-
     // BFS Based FloodFill algo. God help me.
     // And thank you GfG
     private void FloodFill(int x, int y)
@@ -235,39 +203,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         else 
         {
             window.Window.Title = $"Pico Mapper ({this.GetName()})";
-
-            this.TileCache.Clear();
-            foreach (Tile tile in this.Map.Tiles)
-            {
-                Texture2D texture;
-                try
-                {
-                    using FileStream stream = new FileStream(tile.Path, FileMode.Open, FileAccess.Read);
-                    texture = Texture2D.FromStream(window.GraphicsDevice, stream);
-                }
-                catch (Exception err)
-                {
-                    MessageBox.Show(
-                        $"An error occoured parsing the texture: {err.Message}",
-                        "Invalid Input!",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error
-                    );
-
-                    return;
-                }
-
-                bool success = this.TileCache.TryAdd(tile.ID, texture);
-                if (!success)
-                {
-                    MessageBox.Show(
-                        "Something went wrong while trying to refresh tile cache. The app will now close.",
-                        "Critical Error!",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error
-                    );
-
-                    window.Exit();
-                }
-            }
+            if (!Utilities.RefreshCache(window, this)) return;
         }
 
         this.bounds = new Rectangle(
