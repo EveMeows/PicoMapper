@@ -21,6 +21,8 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     public readonly ComponentController NormalComponents = new ComponentController();
     private readonly ComponentController NonIgnorableComponents = new ComponentController();
 
+    public string? FilePath = path;
+
     private Toggler toggler = null!;
     private MenuView menu = null!;
 
@@ -75,6 +77,102 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     }
     #endregion
 
+    private string GetName()
+    {
+        if (this.FilePath is null) return "";
+        string[] split = this.FilePath.Split(Path.DirectorySeparatorChar);
+
+        return split.Last();
+    }
+
+    public void Save()
+    {
+        if (this.FilePath is null)
+        {
+            this.SaveAs();
+            return;
+        }
+
+        try
+        {
+            string json = JsonSerializer.Serialize<Map>(this.Map);
+            File.WriteAllText(this.FilePath, json);
+        }
+        catch (Exception e)
+        {
+            MessageBox.Show(
+                $"Save data could not be written: {e.Message}",
+                "Error saving file!",
+                MessageBoxButtons.OK, MessageBoxIcon.Error
+            );
+
+            return;
+        }
+    }
+
+    public void SaveAs()
+    {
+        try
+        {
+            using SaveFileDialog file = new SaveFileDialog();
+            file.Filter = "Pico Mapper Files (.p8m)|*.p8m";
+            file.Title = "Save map data.";
+
+            file.ShowDialog();
+            if (file.FileName.Trim() != string.Empty)
+            {
+                this.FilePath = file.FileName.Trim();
+
+                string json = JsonSerializer.Serialize<Map>(this.Map);
+                File.WriteAllText(this.FilePath, json);
+
+                window.Window.Title = $"Pico Mapper ({this.GetName()})";
+            }
+        }
+        catch (Exception e)
+        { 
+            MessageBox.Show(
+                $"Save data could not be written: {e.Message}",
+                "Error saving file!",
+                MessageBoxButtons.OK, MessageBoxIcon.Error
+            );
+
+            return;
+        }
+    }
+
+    public void Open()
+    {
+        try
+        {
+            using OpenFileDialog file = new OpenFileDialog();
+            file.Filter = "Pico Mapper Files (.p8m)|*.p8m";
+            file.Title = "Open map.";
+
+            DialogResult result = file.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                if (file.FileName.Trim() != string.Empty)
+                {
+                    string json = File.ReadAllText(file.FileName.Trim());
+                    Map? map = JsonSerializer.Deserialize<Map>(json) ?? throw new JsonException("Invalid map data given.");
+
+                    window.Context.SwitchState(new Editor(window, map, file.FileName.Trim()));
+                }
+            }
+        }
+        catch (Exception e)
+        { 
+            MessageBox.Show(
+                $"Could not open file: {e.Message}",
+                "Error opening file!",
+                MessageBoxButtons.OK, MessageBoxIcon.Error
+            );
+
+            return;
+        }
+    }
+
     public override void LoadContent()
     {
         this.NormalComponents.Add(new TileViewer(window, this));
@@ -92,13 +190,13 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
         this.font = window.Content.Load<SpriteFont>("UI/Fonts/PicoNormal");
 
-        if (path is null)
+        if (this.FilePath is null)
         {
-            window.Window.Title = "PicoMapper (untitiled.p8m)";
+            window.Window.Title = "Pico Mapper (untitiled.p8m)";
         }
         else 
         {
-            window.Window.Title = $"PicoMapper ({path})";
+            window.Window.Title = $"Pico Mapper ({this.GetName()})";
 
             this.TileCache.Clear();
             foreach (Tile tile in this.Map.Tiles)

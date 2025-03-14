@@ -87,7 +87,6 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
     {
         this.editor.Camera.Zoom = MathHelper.Clamp(this.editor.Camera.Zoom + 0.3f, 0.65f, 6);
     }
-
     #endregion
 
     private void Reset()
@@ -137,10 +136,10 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
         Menu file = new Menu(new Rectangle(0, this.BGSize, 183, 105), this.window);
         file.Buttons.Add(MakeMenuButton("NEW               CTRL + N", new Vector2(5, this.BGSize + offset), this.Create));
-        file.Buttons.Add(MakeMenuButton("OPEN...        CTRL + O", new Vector2(5, this.BGSize + offset * 3)));
-        file.Buttons.Add(MakeMenuButton("SAVE            CTRL + S", new Vector2(5, this.BGSize + offset * 5)));
-        file.Buttons.Add(MakeMenuButton("SAVE AS...  CTRL + SHIFT + S", new Vector2(5, this.BGSize + offset * 7)));
-        file.Buttons.Add(MakeMenuButton("EXIT", new Vector2(5, this.BGSize + offset * 9)));
+        file.Buttons.Add(MakeMenuButton("OPEN...        CTRL + O", new Vector2(5, this.BGSize + offset * 3), (self) => { this.editor.Open(); }));
+        file.Buttons.Add(MakeMenuButton("SAVE            CTRL + S", new Vector2(5, this.BGSize + offset * 5), (self) => { this.editor.Save(); }));
+        file.Buttons.Add(MakeMenuButton("SAVE AS...  CTRL + SHIFT + S", new Vector2(5, this.BGSize + offset * 7), (self) => { this.editor.SaveAs(); }));
+        file.Buttons.Add(MakeMenuButton("EXIT", new Vector2(5, this.BGSize + offset * 9), (self) => { this.window.Exit(); }));
         this.menus.Add("FILE", file);
 
         Menu edit = new Menu(new Rectangle(40, this.BGSize, 110, 105), this.window);
@@ -217,6 +216,21 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                 {
                     this.Centre();
                 }
+
+                if (InputHelper.IsKeyPressed(Keys.S))
+                {
+                    this.editor.SaveAs();
+                }
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.S))
+            {
+                this.editor.Save();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.O))
+            {
+                this.editor.Open();
             }
 
             if (InputHelper.IsKeyPressed(Keys.N))
