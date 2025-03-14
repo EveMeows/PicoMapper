@@ -21,32 +21,35 @@ public class TileViewer : Component, IDrawableComponent, IUpdateableComponent
     private readonly int Scale = 3;
     private readonly UIController ui = new UIController(false);
 
-    private bool handleOpen = false;
+    public bool HandleVisible = true;
+    public bool HandleOpen = false;
+
     private readonly Texture2D handleTexture;
     private readonly TextureButton handle;
 
-    private readonly Vector2 ViewSize = new Vector2(32);
+    public readonly Vector2 ViewSize = new Vector2(32);
     private readonly int ViewCount = 5;
 
     private Rectangle viewRect;
 
     private readonly int BorderThick = 3;
+    private readonly int ActiveThick = 2;
 
     private readonly Texture2D pixel;
 
     public void DrawRectangleLines(float x, float y, float width, float height, Color colour, SpriteBatch batch, float alpha = 1)
     {
         // Top
-        batch.Draw(this.pixel, new Rectangle((int)x, (int)y, (int)width, 1), colour * alpha);
+        batch.Draw(this.pixel, new Rectangle((int)x, (int)y, (int)width, this.ActiveThick), colour * alpha);
 
         // Left
-        batch.Draw(this.pixel, new Rectangle((int)x, (int)y, 1, (int)height), colour * alpha);
+        batch.Draw(this.pixel, new Rectangle((int)x, (int)y, this.ActiveThick, (int)height), colour * alpha);
 
         // Right
-        batch.Draw(this.pixel, new Rectangle((int)(x + width - 1), (int)y, 1, (int)height), colour * alpha);
+        batch.Draw(this.pixel, new Rectangle((int)(x + width - this.ActiveThick), (int)y, this.ActiveThick, (int)height), colour * alpha);
 
         // Bottom
-        batch.Draw(this.pixel, new Rectangle((int)x, (int)(y + height - 1), (int)width, 1), colour * alpha);
+        batch.Draw(this.pixel, new Rectangle((int)x, (int)(y + height - this.ActiveThick), (int)width, this.ActiveThick), colour * alpha);
     }
 
     public void DrawRectangleLines(Rectangle rect, Color colour, SpriteBatch batch)
@@ -54,7 +57,7 @@ public class TileViewer : Component, IDrawableComponent, IUpdateableComponent
 
     private void Handle(Button self)
     {
-        this.handleOpen = !this.handleOpen;
+        this.HandleOpen = !this.HandleOpen;
     }
 
     public TileViewer(Mapper window, Editor editor)
@@ -83,13 +86,9 @@ public class TileViewer : Component, IDrawableComponent, IUpdateableComponent
 
     public void Update(GameTime time)
     {
-        if (!this.handleOpen)
-        {
-            this.handle.SetPosition(new Vector2(this.window.GameSize.X - this.handleTexture.Width * this.Scale, 30));
-        }
-        else
-        {
-            this.handle.SetPosition(new Vector2(this.viewRect.X - this.handleTexture.Width * this.Scale - this.BorderThick, 30));
+        if (this.HandleVisible)
+        { 
+            this.ui.Update(InputHelper.GetMousePosition());
         }
 
         this.viewRect = new Rectangle(
@@ -128,14 +127,27 @@ public class TileViewer : Component, IDrawableComponent, IUpdateableComponent
                 y++;
             }
         }
-
-        this.ui.Update(InputHelper.GetMousePosition());
     }
 
     public void Draw(SpriteBatch batch, Camera2D? camera = null)
     {
-        this.ui.Draw(batch, camera);
-        if (this.handleOpen)
+        // Handle position here
+        // So it can keep updating even when we have menu open.
+        if (!this.HandleOpen)
+        {
+            this.handle.SetPosition(new Vector2(this.window.GameSize.X - this.handleTexture.Width * this.Scale, 30));
+        }
+        else
+        {
+            this.handle.SetPosition(new Vector2(this.viewRect.X - this.handleTexture.Width * this.Scale - this.BorderThick, 30));
+        }
+
+        if (this.HandleVisible)
+        {
+            this.ui.Draw(batch, camera);
+        }
+        
+        if (this.HandleOpen)
         {
             batch.Draw(this.pixel, this.viewRect, new Color(26, 26, 26));
             batch.Draw(this.pixel, new Rectangle(this.viewRect.X - this.BorderThick, this.viewRect.Y, this.BorderThick, this.viewRect.Height), Colours.Crimson);
@@ -151,7 +163,7 @@ public class TileViewer : Component, IDrawableComponent, IUpdateableComponent
                 // Draw active
                 if (this.editor.ActiveTile == tile.Key)
                 {
-                    this.DrawRectangleLines(this.viewRect.X + x * this.ViewSize.X, this.viewRect.Y + y * this.ViewSize.Y, this.ViewSize.X, this.ViewSize.Y, Color.White, batch);
+                    this.DrawRectangleLines(this.viewRect.X + x * this.ViewSize.X, this.viewRect.Y + y * this.ViewSize.Y, this.ViewSize.X, this.ViewSize.Y, Color.White* 0.8f, batch);
                 }
 
                 x++;

@@ -37,6 +37,8 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
     private Dictionary<string, Menu> Menus = new Dictionary<string, Menu>();
 
+    private TileViewer? viewer = null;
+
     #region Events
     private void Create(Button? self = null)
     { 
@@ -55,7 +57,28 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         using RemoveTile removeTile = new RemoveTile(this.window);
         removeTile.ShowDialog();
     }
+
+    private void ToggleHandle(Button? self = null)
+    {
+        if (this.viewer is null) return;
+        this.viewer.HandleVisible = !this.viewer.HandleVisible;
+    }
+
+    private void ToggleTiles(Button? self = null)
+    {
+        if (this.viewer is null) return;
+        this.viewer.HandleOpen = !this.viewer.HandleOpen;
+    }
     #endregion
+
+    private void Reset()
+    { 
+        this.active = null;
+                    
+        State? state = this.window.Context.State;
+        if (state is Editor editor)
+            editor.State = EditorState.Normal;
+    }
 
     private void BuildUI()
     {
@@ -116,9 +139,12 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         edit.Buttons.Add(MakeMenuButton("PASTE  CTRL + V", new Vector2(45, this.BGSize + offset * 9)));
         this.Menus.Add("EDIT", edit);
 
-        Menu view = new Menu(new Rectangle(78, this.BGSize, 89, 45), this.window);
+        Menu view = new Menu(new Rectangle(78, this.BGSize, 250, 130), this.window);
         view.Buttons.Add(MakeMenuButton("ZOOM IN       +", new Vector2(83, this.BGSize + offset)));
         view.Buttons.Add(MakeMenuButton("ZOOM OUT    -", new Vector2(83, this.BGSize + offset * 3)));
+        view.Buttons.Add(MakeMenuButton("CENTRE CAMERA           CTRL + SHIFT + C", new Vector2(83, this.BGSize + offset * 5)));
+        view.Buttons.Add(MakeMenuButton("TOGGLE HANDLE           CTRL + H", new Vector2(83, this.BGSize + offset * 9), this.ToggleHandle));
+        view.Buttons.Add(MakeMenuButton("TOGGLE TILE VIEW     CTRL + T", new Vector2(83, this.BGSize + offset * 11), this.ToggleTiles));
         this.Menus.Add("VIEW", view);
 
         Menu tiles = new Menu(new Rectangle(115, this.BGSize, 158, 45), this.window);
@@ -140,6 +166,11 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         this.window = window;
         this.font = window.Content.Load<SpriteFont>("UI/Fonts/PicoMenu");
 
+        if (this.window.Context.State is Editor editor)
+        {
+            this.viewer = editor.NormalComponents.Get<TileViewer>();
+        }
+
         this.BuildUI();
     }
 
@@ -158,12 +189,13 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
             {
                 if (InputHelper.IsMousePressed(MouseButton.Left))
                 {
-                    this.active = null;
-                    
-                    State? state = this.window.Context.State;
-                    if (state is Editor editor)
-                        editor.State = EditorState.Normal;
+                    this.Reset();
                 }
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.Escape))
+            {
+                this.Reset();
             }
         }
 
@@ -183,6 +215,16 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
             if (InputHelper.IsKeyPressed(Keys.R))
             {
                 this.RemoveTile();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.H))
+            {
+                this.ToggleHandle();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.T))
+            {
+                this.ToggleTiles();
             }
         }
     }

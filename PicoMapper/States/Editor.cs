@@ -18,7 +18,7 @@ namespace PicoMapper.States;
 
 public class Editor(Mapper window, Map map, string? path = null) : State, IStatedState
 {
-    private readonly ComponentController NormalComponents = new ComponentController();
+    public readonly ComponentController NormalComponents = new ComponentController();
     private readonly ComponentController NonIgnorableComponents = new ComponentController();
 
     private Toggler toggler = null!;
@@ -77,10 +77,10 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
     public override void LoadContent()
     {
+        this.NormalComponents.Add(new TileViewer(window, this));
+
         this.toggler = new Toggler(window);
         this.NormalComponents.Add(this.toggler);
-
-        this.NormalComponents.Add(new TileViewer(window, this));
 
         this.menu = new MenuView(window);
         this.NonIgnorableComponents.Add(this.menu);
@@ -147,17 +147,6 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             case EditorState.Normal:
                 this.NormalComponents.Update(time);
                 this.NonIgnorableComponents.Update(time);
-
-                if (InputHelper.IsKeyDown(Keys.LeftControl))
-                {
-                    if (InputHelper.IsKeyPressed(Keys.A))
-                    {
-                        this.State = EditorState.Dialog;
-
-                        using AddTile tile = new AddTile(window);
-                        tile.ShowDialog();
-                    }
-                }
 
                 // Create layer if it doesnt exist.
                 if (this.Map.Layers.Count - 1 < this.activeLayer)

@@ -10,6 +10,7 @@ using Button = MonoGayme.Core.UI.Button;
 using ToggleButton = PicoMapper.UI.ToggleButton;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
+using PicoMapper.States;
 
 namespace PicoMapper.Components;
 
@@ -34,6 +35,10 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
     private float uiY;
     private readonly float Scale;
     private readonly float SpriteSize;
+
+    private readonly TileViewer? viewer;
+
+    private readonly float Offset = 5;
 
     private void OnToggle(Button self)
     {
@@ -78,18 +83,22 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
 
         this.window = window;
 
-        float offset = 5;
         this.buttons = [
-            this.CreateButton(Selected.Pencil, "UI/Buttons/Pencil", offset, Keys.D),
-            this.CreateButton(Selected.Eraser, "UI/Buttons/Eraser", this.SpriteSize + offset * 2, Keys.E),
-            this.CreateButton(Selected.Bucket, "UI/Buttons/Bucket", this.SpriteSize * 2 + offset * 3, Keys.B),
-            this.CreateButton(Selected.Select, "UI/Buttons/Move", this.SpriteSize * 3 + offset * 4, Keys.S),
-            this.CreateButton(Selected.Move, "UI/Buttons/Hand", this.SpriteSize * 4 + offset * 5, Keys.Space),
+            this.CreateButton(Selected.Pencil, "UI/Buttons/Pencil", this.Offset, Keys.D),
+            this.CreateButton(Selected.Eraser, "UI/Buttons/Eraser", this.SpriteSize + this.Offset * 2, Keys.E),
+            this.CreateButton(Selected.Bucket, "UI/Buttons/Bucket", this.SpriteSize * 2 + this.Offset * 3, Keys.B),
+            this.CreateButton(Selected.Select, "UI/Buttons/Move", this.SpriteSize * 3 + this.Offset * 4, Keys.S),
+            this.CreateButton(Selected.Move, "UI/Buttons/Hand", this.SpriteSize * 4 + this.Offset * 5, Keys.Space),
         ];
 
         this.buttons[0].Colour = Color.White;
 
         this.font = window.Content.Load<SpriteFont>("UI/Fonts/PicoNormal");
+
+        if (this.window.Context.State is Editor editor)
+        {
+            this.viewer = editor.NormalComponents.Get<TileViewer>();
+        }
     }
 
     public void Update(GameTime time)
@@ -140,6 +149,54 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
             btn.SetPositionY(this.uiY);
 
             btn.Draw(batch, camera);
+        }
+
+        // Draw active tile
+        if (this.window.Context.State is Editor editor)
+        {
+            if (this.viewer is null) return;
+
+            int baseX = (int)(this.SpriteSize * 5 + this.Offset * 7);
+
+            // Background
+            batch.Draw(
+                this.pixel,
+                new Rectangle(baseX, (int)this.uiY, (int)this.viewer.ViewSize.X, (int)this.viewer.ViewSize.Y),
+                Color.Black
+            );
+
+            // Tile
+            if (editor.ActiveTile != 0)
+            {
+                if (editor.TileCache.TryGetValue(editor.ActiveTile, out Texture2D? texture))
+                {
+                    // Scale
+                    Vector2 scale = this.viewer.ViewSize / new Vector2(texture.Width, texture.Height);
+
+                    batch.Draw(
+                        texture, new Vector2(baseX, (int)this.uiY), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 0
+                    );       
+                }
+            }
+
+            string tile = $"{editor.ActiveTile:D3}";
+            Vector2 tileDim = this.font.MeasureString(tile);
+
+            int offset = 4;
+
+            int textX = baseX + (int)this.viewer.ViewSize.X + offset * 2;
+            int textY = (int)this.uiY + (int)this.viewer.ViewSize.Y - (int)tileDim.Y - offset * 2;
+
+            // Background
+            batch.Draw(
+                this.pixel,
+                new Rectangle(textX - offset, textY, (int)tileDim.X + offset, (int)tileDim.Y + offset * 2),
+                Colours.Metallic
+            );
+
+            batch.DrawString(
+                this.font, tile, new Vector2(textX, textY + offset), Colours.DarkMetallic    
+            );
         }
     }
 }
