@@ -40,6 +40,8 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
 
     private readonly float Offset = 5;
 
+    private readonly Editor editor;
+
     private void OnToggle(Button self)
     {
         if (self is ToggleButton btn)
@@ -71,7 +73,7 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
         ) { OnClick = this.OnToggle, OnHover = this.OnHover, OnMouseExit = this.OnExit };
     }
 
-    public Toggler(Mapper window)
+    public Toggler(Mapper window, Editor editor)
     {
         this.uiY = window.GameSize.Y - this.BGSize + 4;
 
@@ -95,10 +97,8 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
 
         this.font = window.Content.Load<SpriteFont>("UI/Fonts/PicoNormal");
 
-        if (this.window.Context.State is Editor editor)
-        {
-            this.viewer = editor.NormalComponents.Get<TileViewer>();
-        }
+        this.editor = editor;
+        this.viewer = editor.NormalComponents.Get<TileViewer>();
     }
 
     public void Update(GameTime time)
@@ -152,51 +152,48 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
         }
 
         // Draw active tile
-        if (this.window.Context.State is Editor editor)
+        if (this.viewer is null) return;
+
+        int baseX = (int)(this.SpriteSize * 5 + this.Offset * 7);
+
+        // Background
+        batch.Draw(
+            this.pixel,
+            new Rectangle(baseX, (int)this.uiY, (int)this.viewer.ViewSize.X, (int)this.viewer.ViewSize.Y),
+            Color.Black
+        );
+
+        // Tile
+        if (this.editor.ActiveTile != 0)
         {
-            if (this.viewer is null) return;
-
-            int baseX = (int)(this.SpriteSize * 5 + this.Offset * 7);
-
-            // Background
-            batch.Draw(
-                this.pixel,
-                new Rectangle(baseX, (int)this.uiY, (int)this.viewer.ViewSize.X, (int)this.viewer.ViewSize.Y),
-                Color.Black
-            );
-
-            // Tile
-            if (editor.ActiveTile != 0)
+            if (this.editor.TileCache.TryGetValue(this.editor.ActiveTile, out Texture2D? texture))
             {
-                if (editor.TileCache.TryGetValue(editor.ActiveTile, out Texture2D? texture))
-                {
-                    // Scale
-                    Vector2 scale = this.viewer.ViewSize / new Vector2(texture.Width, texture.Height);
+                // Scale
+                Vector2 scale = this.viewer.ViewSize / new Vector2(texture.Width, texture.Height);
 
-                    batch.Draw(
-                        texture, new Vector2(baseX, (int)this.uiY), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 0
-                    );       
-                }
+                batch.Draw(
+                    texture, new Vector2(baseX, (int)this.uiY), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 0
+                );       
             }
-
-            string tile = $"{editor.ActiveTile:D3}";
-            Vector2 tileDim = this.font.MeasureString(tile);
-
-            int offset = 4;
-
-            int textX = baseX + (int)this.viewer.ViewSize.X + offset * 2;
-            int textY = (int)this.uiY + (int)this.viewer.ViewSize.Y - (int)tileDim.Y - offset * 2;
-
-            // Background
-            batch.Draw(
-                this.pixel,
-                new Rectangle(textX - offset, textY, (int)tileDim.X + offset, (int)tileDim.Y + offset * 2),
-                Colours.Metallic
-            );
-
-            batch.DrawString(
-                this.font, tile, new Vector2(textX, textY + offset), Colours.DarkMetallic    
-            );
         }
+
+        string tile = $"{this.editor.ActiveTile:D3}";
+        Vector2 tileDim = this.font.MeasureString(tile);
+
+        int offset = 4;
+
+        int textX = baseX + (int)this.viewer.ViewSize.X + offset * 2;
+        int textY = (int)this.uiY + (int)this.viewer.ViewSize.Y - (int)tileDim.Y - offset * 2;
+
+        // Background
+        batch.Draw(
+            this.pixel,
+            new Rectangle(textX - offset, textY, (int)tileDim.X + offset, (int)tileDim.Y + offset * 2),
+            Colours.Metallic
+        );
+
+        batch.DrawString(
+            this.font, tile, new Vector2(textX, textY + offset), Colours.DarkMetallic    
+        );
     }
 }

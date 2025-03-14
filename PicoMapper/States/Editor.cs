@@ -79,10 +79,10 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     {
         this.NormalComponents.Add(new TileViewer(window, this));
 
-        this.toggler = new Toggler(window);
+        this.toggler = new Toggler(window, this);
         this.NormalComponents.Add(this.toggler);
 
-        this.menu = new MenuView(window);
+        this.menu = new MenuView(window, this);
         this.NonIgnorableComponents.Add(this.menu);
 
         this.Camera = new Camera2D(new Vector2(this.Map.TileX * this.Map.GridX / 2, this.Map.TileY * this.Map.GridY / 2), 2, new Vector2(window.GameSize.X / 2, window.GameSize.Y / 2));
@@ -288,8 +288,8 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             this.NonIgnorableComponents.Draw(batch);
 
             // batch.DrawString(this.font, $"Tiles: {this.TileCache.Count}, {this.Map.Tiles.Count}", new Vector2(5, 130), Color.White);
-            // batch.DrawString(this.font, $"Zoom: {this.camera.Zoom}", new Vector2(5, 130), Color.White);
-            // batch.DrawString(this.font, $"Position: {this.camera.Position}", new Vector2(5, 155), Color.White);
+            // batch.DrawString(this.font, $"Zoom: {this.Camera.Zoom}", new Vector2(5, 130), Color.White);
+            // batch.DrawString(this.font, $"Position: {this.Camera.Position}", new Vector2(5, 155), Color.White);
             // batch.DrawString(this.font, $"State: {this.State}", new Vector2(5, 180), Color.White);
         batch.End();
     }

@@ -35,9 +35,11 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
     private Menu? active;
 
-    private Dictionary<string, Menu> Menus = new Dictionary<string, Menu>();
+    private Dictionary<string, Menu> menus = new Dictionary<string, Menu>();
 
     private TileViewer? viewer = null;
+
+    private readonly Editor editor;
 
     #region Events
     private void Create(Button? self = null)
@@ -69,15 +71,29 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         if (this.viewer is null) return;
         this.viewer.HandleOpen = !this.viewer.HandleOpen;
     }
+
+    private void Centre(Button? self = null)
+    {
+        this.editor.Camera.Origin = this.window.GameSize / 2;
+        this.editor.Camera.Position = new Vector2(this.editor.Map.TileX * this.editor.Map.GridX / 2, this.editor.Map.TileY * this.editor.Map.GridY / 2);
+    }
+
+    private void ZoomOut(Button? self = null)
+    {
+        this.editor.Camera.Zoom = MathHelper.Clamp(this.editor.Camera.Zoom - 0.3f, 0.65f, 6);
+    }
+
+    private void ZoomIn(Button? self = null)
+    {
+        this.editor.Camera.Zoom = MathHelper.Clamp(this.editor.Camera.Zoom + 0.3f, 0.65f, 6);
+    }
+
     #endregion
 
     private void Reset()
     { 
         this.active = null;
-                    
-        State? state = this.window.Context.State;
-        if (state is Editor editor)
-            editor.State = EditorState.Normal;
+        this.editor.State = EditorState.Normal;
     }
 
     private void BuildUI()
@@ -90,19 +106,15 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                 OnMouseExit  = (self) => { self.Colour = Color.White; },
 
                 OnClick = (self) => {
-                    State? state = this.window.Context.State;
-                    if (state is Editor editor)
-                    { 
-                        if (this.active == this.Menus[name])
-                        {
-                            this.active = null;
-                            editor.State = EditorState.Normal;
-                            return;
-                        }
-
-                        this.active = this.Menus[name];
-                        editor.State = EditorState.MenuOpen;
+                    if (this.active == this.menus[name])
+                    {
+                        this.active = null;
+                        this.editor.State = EditorState.Normal;
+                        return;
                     }
+
+                    this.active = this.menus[name];
+                    this.editor.State = EditorState.MenuOpen;
                 }
             };
 
@@ -129,7 +141,7 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         file.Buttons.Add(MakeMenuButton("SAVE            CTRL + S", new Vector2(5, this.BGSize + offset * 5)));
         file.Buttons.Add(MakeMenuButton("SAVE AS...  CTRL + SHIFT + S", new Vector2(5, this.BGSize + offset * 7)));
         file.Buttons.Add(MakeMenuButton("EXIT", new Vector2(5, this.BGSize + offset * 9)));
-        this.Menus.Add("FILE", file);
+        this.menus.Add("FILE", file);
 
         Menu edit = new Menu(new Rectangle(40, this.BGSize, 110, 105), this.window);
         edit.Buttons.Add(MakeMenuButton("UNDO     CTRL + Z", new Vector2(45, this.BGSize + offset)));
@@ -137,20 +149,20 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         edit.Buttons.Add(MakeMenuButton("CUT        CTRL + X", new Vector2(45, this.BGSize + offset * 5)));
         edit.Buttons.Add(MakeMenuButton("COPY     CTRL + C", new Vector2(45, this.BGSize + offset * 7)));
         edit.Buttons.Add(MakeMenuButton("PASTE  CTRL + V", new Vector2(45, this.BGSize + offset * 9)));
-        this.Menus.Add("EDIT", edit);
+        this.menus.Add("EDIT", edit);
 
         Menu view = new Menu(new Rectangle(78, this.BGSize, 250, 130), this.window);
-        view.Buttons.Add(MakeMenuButton("ZOOM IN       +", new Vector2(83, this.BGSize + offset)));
-        view.Buttons.Add(MakeMenuButton("ZOOM OUT    -", new Vector2(83, this.BGSize + offset * 3)));
-        view.Buttons.Add(MakeMenuButton("CENTRE CAMERA           CTRL + SHIFT + C", new Vector2(83, this.BGSize + offset * 5)));
+        view.Buttons.Add(MakeMenuButton("ZOOM IN", new Vector2(83, this.BGSize + offset), this.ZoomIn));
+        view.Buttons.Add(MakeMenuButton("ZOOM OUT", new Vector2(83, this.BGSize + offset * 3), this.ZoomOut));
+        view.Buttons.Add(MakeMenuButton("CENTRE CAMERA           CTRL + SHIFT + C", new Vector2(83, this.BGSize + offset * 5), this.Centre));
         view.Buttons.Add(MakeMenuButton("TOGGLE HANDLE           CTRL + H", new Vector2(83, this.BGSize + offset * 9), this.ToggleHandle));
         view.Buttons.Add(MakeMenuButton("TOGGLE TILE VIEW     CTRL + T", new Vector2(83, this.BGSize + offset * 11), this.ToggleTiles));
-        this.Menus.Add("VIEW", view);
+        this.menus.Add("VIEW", view);
 
         Menu tiles = new Menu(new Rectangle(115, this.BGSize, 158, 45), this.window);
         tiles.Buttons.Add(MakeMenuButton("ADD TILE            CTRL + A", new Vector2(120, this.BGSize + offset), this.NewTile));
         tiles.Buttons.Add(MakeMenuButton("REMOVE TILE    CTRL + R", new Vector2(120, this.BGSize + offset * 3), this.RemoveTile));
-        this.Menus.Add("TILES", tiles);
+        this.menus.Add("TILES", tiles);
 
         this.ui.Add(MakeButton("FILE", 2));
         this.ui.Add(MakeButton("EDIT", 40));
@@ -158,7 +170,7 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         this.ui.Add(MakeButton("TILES", 115));
     }
     
-    public MenuView(Mapper window)
+    public MenuView(Mapper window, Editor editor)
     { 
         this.pixel = new Texture2D(window.GraphicsDevice, 1, 1);
         this.pixel.SetData([Color.White]);
@@ -166,10 +178,8 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         this.window = window;
         this.font = window.Content.Load<SpriteFont>("UI/Fonts/PicoMenu");
 
-        if (this.window.Context.State is Editor editor)
-        {
-            this.viewer = editor.NormalComponents.Get<TileViewer>();
-        }
+        this.editor = editor;
+        this.viewer = this.editor.NormalComponents.Get<TileViewer>();
 
         this.BuildUI();
     }
@@ -201,6 +211,14 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
         if (InputHelper.IsKeyDown(Keys.LeftControl))
         {
+            if (InputHelper.IsKeyDown(Keys.LeftShift))
+            {
+                if (InputHelper.IsKeyPressed(Keys.C))
+                {
+                    this.Centre();
+                }
+            }
+
             if (InputHelper.IsKeyPressed(Keys.N))
             {
                 this.Create();
