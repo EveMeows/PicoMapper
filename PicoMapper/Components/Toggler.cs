@@ -11,6 +11,7 @@ using ToggleButton = PicoMapper.UI.ToggleButton;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using PicoMapper.States;
+using MonoGayme.Core.Utilities;
 
 namespace PicoMapper.Components;
 
@@ -41,6 +42,9 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
     private readonly float Offset = 5;
 
     private readonly Editor editor;
+
+    private Rectangle layerRect = new Rectangle();
+    private bool layerEnter = false;
 
     private void OnToggle(Button self)
     {
@@ -116,6 +120,34 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
                 this.Active = btn.Type;
             }
         }
+
+        if (Collision.CheckRectPoint(InputHelper.GetMousePosition(), this.layerRect))
+        {
+            this.layerEnter = true;
+            this.ToolTip = "Layer (Left = next, Right = previous)";
+
+            if (InputHelper.IsMousePressed(MouseButton.Left))
+            {
+                this.editor.ActiveLayer++;
+            }
+
+            if (InputHelper.IsMousePressed(MouseButton.Right))
+            {
+                this.editor.ActiveLayer--;
+                if (this.editor.ActiveLayer < 0)
+                {
+                    this.editor.ActiveLayer = 0;
+                }
+            }
+        }
+        else
+        {
+            if (this.layerEnter)
+            {
+                this.ToolTip = "";
+                this.layerEnter = false;
+            }
+        }
     }
 
     public void Draw(SpriteBatch batch, Camera2D? camera = null)
@@ -177,23 +209,46 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
             }
         }
 
+        int offset = 4;
+
+        // Tile
         string tile = $"{this.editor.ActiveTile:D3}";
         Vector2 tileDim = this.font.MeasureString(tile);
 
-        int offset = 4;
+        int tileX = baseX + (int)this.viewer.ViewSize.X + offset * 2;
+        int tileY = (int)this.uiY + (int)this.viewer.ViewSize.Y - (int)tileDim.Y - offset * 2;
 
-        int textX = baseX + (int)this.viewer.ViewSize.X + offset * 2;
-        int textY = (int)this.uiY + (int)this.viewer.ViewSize.Y - (int)tileDim.Y - offset * 2;
-
-        // Background
+        // Tile Background
         batch.Draw(
             this.pixel,
-            new Rectangle(textX - offset, textY, (int)tileDim.X + offset, (int)tileDim.Y + offset * 2),
+            new Rectangle(tileX - offset, tileY, (int)tileDim.X + offset, (int)tileDim.Y + offset * 2),
             Colours.Metallic
         );
 
+        // Tile Text
         batch.DrawString(
-            this.font, tile, new Vector2(textX, textY + offset), Colours.DarkMetallic    
+            this.font, tile, new Vector2(tileX, tileY + offset), Colours.DarkMetallic    
+        );
+
+        // Layer
+        string layer = $"{this.editor.ActiveLayer:D3}";
+        Vector2 layerDim = this.font.MeasureString(layer);
+
+        int layerX = (int)this.window.GameSize.X - (int)layerDim.X - offset * 2;
+        int layerY = (int)this.uiY + (int)this.viewer.ViewSize.Y - (int)layerDim.Y - offset * 2;
+
+        this.layerRect = new Rectangle(layerX - offset, layerY, (int)layerDim.X + offset, (int)layerDim.Y + offset * 2);
+
+        // Layer Background
+        batch.Draw(
+            this.pixel,
+            this.layerRect,
+            Colours.Pink
+        );
+
+        // Layer text
+        batch.DrawString(
+            this.font, layer, new Vector2(layerX, layerY + offset), Colours.PicoWhite
         );
     }
 }

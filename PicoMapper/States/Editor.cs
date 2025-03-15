@@ -30,8 +30,9 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
     public readonly Map Map = map;
     public readonly Dictionary<int, Texture2D> TileCache = new Dictionary<int, Texture2D>();
-    private int activeLayer = 0;
+    public int ActiveLayer = 0;
     public int ActiveTile = 0;
+    public bool OnlyActiveLayer = false;
 
     public EditorState State { get; set; } = EditorState.Normal;
 
@@ -145,14 +146,14 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     // And thank you GfG
     private void FloodFill(int x, int y)
     {
-        int col = this.Map.Layers[this.activeLayer].GetLength(0);
-        int row = this.Map.Layers[this.activeLayer].GetLength(1);
+        int col = this.Map.Layers[this.ActiveLayer].GetLength(0);
+        int row = this.Map.Layers[this.ActiveLayer].GetLength(1);
 
         Queue<(int, int)> floodQueue = new Queue<(int, int)>();
         floodQueue.Enqueue((x, y));
 
-        int old = this.Map.Layers[this.activeLayer][x, y];
-        this.Map.Layers[this.activeLayer][x, y] = this.ActiveTile;
+        int old = this.Map.Layers[this.ActiveLayer][x, y];
+        this.Map.Layers[this.ActiveLayer][x, y] = this.ActiveTile;
 
         int[] dx = [ -1, 1, 0, 0 ];
         int[] dy = [ 0, 0, -1, 1 ];
@@ -169,10 +170,10 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 if (
                     nx >= 0 && nx < col &&
                     ny >= 0 && ny < row &&
-                    this.Map.Layers[this.activeLayer][nx, ny] == old
+                    this.Map.Layers[this.ActiveLayer][nx, ny] == old
                 )
                 {
-                    this.Map.Layers[this.activeLayer][nx, ny] = this.ActiveTile;
+                    this.Map.Layers[this.ActiveLayer][nx, ny] = this.ActiveTile;
                     floodQueue.Enqueue((nx, ny));
                 }
             }
@@ -221,7 +222,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 this.NonIgnorableComponents.Update(time);
 
                 // Create layer if it doesnt exist.
-                if (this.Map.Layers.Count - 1 < this.activeLayer)
+                if (this.Map.Layers.Count - 1 < this.ActiveLayer)
                 {
                     int[,] layer = new int[this.Map.GridX, this.Map.GridY];
                     Array.Clear(layer, 0, layer.Length);
@@ -243,7 +244,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
                     if (InputHelper.IsMouseDown(MouseButton.Left))
                     {
-                        int[,] layer = this.Map.Layers[this.activeLayer];
+                        int[,] layer = this.Map.Layers[this.ActiveLayer];
 
                         switch (this.toggler.Active)
                         {
@@ -253,7 +254,6 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                     break;
 
                                 layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = this.ActiveTile;
-
                                 break;
 
                             case Selected.Eraser:
@@ -262,7 +262,6 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                     break;
 
                                 layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = 0;
-
                                 break;
 
                             case Selected.Bucket:
@@ -270,11 +269,10 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                     break;
 
                                 this.FloodFill((int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y);
-
                                 break;
 
                             default:
-                                break;
+                                    break;
                         }
                     }
                 }
@@ -288,26 +286,23 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 }
 
                 // Camera controls
-                if (window.IsActive)
-                { 
-                    int delta = InputHelper.GetScrollDelta();
+                int delta = InputHelper.GetScrollDelta();
 
-                    if (delta != 0)
-                    {
-                        Vector2 mouseBefore = this.Camera.ScreenToWorld(mouse);
+                if (delta != 0)
+                {
+                    Vector2 mouseBefore = this.Camera.ScreenToWorld(mouse);
 
-                        float zoom = delta * 0.001f;
-                        this.Camera.Zoom = MathHelper.Clamp(this.Camera.Zoom + zoom, 0.65f, 6f);
+                    float zoom = delta * 0.001f;
+                    this.Camera.Zoom = MathHelper.Clamp(this.Camera.Zoom + zoom, 0.65f, 6f);
                         
-                        Vector2 mouseAfter = this.Camera.ScreenToWorld(mouse); 
+                    Vector2 mouseAfter = this.Camera.ScreenToWorld(mouse); 
 
-                        this.Camera.Position -= Vector2.Floor(mouseAfter - mouseBefore);
-                    }
+                    this.Camera.Position -= Vector2.Floor(mouseAfter - mouseBefore);
+                }
 
-                    if (InputHelper.IsMouseDown(MouseButton.Left) && this.toggler.Active == Selected.Move)
-                    {
-                        this.Camera.Position -= InputHelper.GetMouseDelta() / this.Camera.Zoom;
-                    }
+                if (InputHelper.IsMouseDown(MouseButton.Left) && this.toggler.Active == Selected.Move)
+                {
+                    this.Camera.Position -= InputHelper.GetMouseDelta() / this.Camera.Zoom;
                 }
                 break;
 
@@ -335,6 +330,8 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 {
                     for (int y = 0; y < layer.GetLength(1); y++)
                     {
+                        if (this.OnlyActiveLayer && this.Map.Layers.IndexOf(layer) != this.ActiveLayer) continue;
+
                         if (layer[x, y] == 0) continue;
 
                         bool success = this.TileCache.TryGetValue(layer[x, y], out Texture2D? texture);

@@ -57,8 +57,8 @@ public class ToggleButton : Button
 
     public override void Update(Vector2 mouse)
     {
-    	if (Collision.CheckRectPoint(mouse, this.rect))
-		{
+        if (Collision.CheckRectPoint(mouse, this.rect))
+        {
             this.OnHover?.Invoke(this);
 
             if (!this.entered)
@@ -67,23 +67,23 @@ public class ToggleButton : Button
                 this.entered = true;
             }
 
-			if (Mouse.GetState().LeftButton == ButtonState.Pressed)
-				this.holding = true;
+            if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+                this.holding = true;
 
-			if (Mouse.GetState().LeftButton != ButtonState.Released || !this.holding) return;
+            if (Mouse.GetState().LeftButton != ButtonState.Released || !this.holding) return;
 
-			this.RunAction();
-			this.holding = false;
-		}
-		else
-		{
+            this.RunAction();
+            this.holding = false;
+        }
+        else
+        {
             if (this.entered)
             {
                 this.OnMouseExit?.Invoke(this);
             }
 
-			this.holding = false;
+            this.holding = false;
             this.entered = false;
-		}
+        }
     }
 }

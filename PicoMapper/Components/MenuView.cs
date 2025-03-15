@@ -87,6 +87,11 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
     {
         this.editor.Camera.Zoom = MathHelper.Clamp(this.editor.Camera.Zoom + 0.3f, 0.65f, 6);
     }
+
+    private void ActiveLayer(Button? self = null)
+    { 
+        this.editor.OnlyActiveLayer = !this.editor.OnlyActiveLayer;
+    }
     #endregion
 
     private void Reset()
@@ -150,12 +155,13 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         edit.Buttons.Add(MakeMenuButton("PASTE  CTRL + V", new Vector2(45, this.BGSize + offset * 9)));
         this.menus.Add("EDIT", edit);
 
-        Menu view = new Menu(new Rectangle(78, this.BGSize, 250, 130), this.window);
+        Menu view = new Menu(new Rectangle(78, this.BGSize, 250, 165), this.window);
         view.Buttons.Add(MakeMenuButton("ZOOM IN", new Vector2(83, this.BGSize + offset), this.ZoomIn));
         view.Buttons.Add(MakeMenuButton("ZOOM OUT", new Vector2(83, this.BGSize + offset * 3), this.ZoomOut));
         view.Buttons.Add(MakeMenuButton("CENTRE CAMERA           CTRL + SHIFT + C", new Vector2(83, this.BGSize + offset * 5), this.Centre));
         view.Buttons.Add(MakeMenuButton("TOGGLE HANDLE           CTRL + H", new Vector2(83, this.BGSize + offset * 9), this.ToggleHandle));
         view.Buttons.Add(MakeMenuButton("TOGGLE TILE VIEW     CTRL + T", new Vector2(83, this.BGSize + offset * 11), this.ToggleTiles));
+        view.Buttons.Add(MakeMenuButton("SHOW ACTIVE LAYER     CTRL + L", new Vector2(83, this.BGSize + offset * 15), this.ActiveLayer));
         this.menus.Add("VIEW", view);
 
         Menu tiles = new Menu(new Rectangle(115, this.BGSize, 158, 45), this.window);
@@ -257,6 +263,11 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
             if (InputHelper.IsKeyPressed(Keys.T))
             {
                 this.ToggleTiles();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.L))
+            {
+                this.ActiveLayer();
             }
         }
     }

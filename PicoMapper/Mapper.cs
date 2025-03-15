@@ -47,7 +47,11 @@ public class Mapper : Game
     {
         InputHelper.GetState();
 
-        this.Context.Update(gameTime);
+        if (this.IsActive)
+        {
+            this.Context.Update(gameTime);
+        }
+
         base.Update(gameTime);
     }
 

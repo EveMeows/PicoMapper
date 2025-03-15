@@ -13,4 +13,7 @@ public static class Colours
 
     public static Color Metallic = new Color(191, 191, 196);
     public static Color DarkMetallic = new Color(131, 118, 156);
+
+    public static Color Pink = new Color(255, 119, 168);
+    public static Color PicoWhite = new Color(255, 241, 232);
 }
