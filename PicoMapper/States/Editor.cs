@@ -47,8 +47,8 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     public Vector2 MapMouseCoords = new Vector2();
     private bool justExited = false;
 
-    public Stack<Stack<EditorAction>> UndoHistory = new Stack<Stack<EditorAction>>();
-    public Stack<Stack<EditorAction>> RedoHistory = new Stack<Stack<EditorAction>>();
+    public Stack<List<EditorAction>> UndoHistory = new Stack<List<EditorAction>>();
+    public Stack<List<EditorAction>> RedoHistory = new Stack<List<EditorAction>>();
 
     #region Drawing
     private void DrawBorders(SpriteBatch batch)
@@ -149,12 +149,12 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
     public void Undo()
     {
-        bool success = this.UndoHistory.TryPop(out Stack<EditorAction>? history);
+        bool success = this.UndoHistory.TryPop(out List<EditorAction>? history);
         if (success && history is not null)
         {
-            this.RedoHistory.Push(new Stack<EditorAction>(history));
+            this.RedoHistory.Push(history);
 
-            while (history.TryPop(out EditorAction? action))
+            foreach (EditorAction action in history)
             {
                 this.Map.Layers[action.Layer][action.X, action.Y] = action.PreviousTile;
             }
@@ -163,12 +163,12 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
     public void Redo()
     {
-        bool success = this.RedoHistory.TryPop(out Stack<EditorAction>? history);
+        bool success = this.RedoHistory.TryPop(out List<EditorAction>? history);
         if (success && history is not null)
         {
-            this.UndoHistory.Push(new Stack<EditorAction>(history));
+            this.UndoHistory.Push(history);
 
-            while (history.TryPop(out EditorAction? action))
+            foreach (EditorAction action in history)
             {
                 this.Map.Layers[action.Layer][action.X, action.Y] = action.NextTile;
             }
@@ -183,12 +183,12 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         int col = this.Map.Layers[this.ActiveLayer].GetLength(0);
         int row = this.Map.Layers[this.ActiveLayer].GetLength(1);
 
-        Stack<EditorAction> history = new Stack<EditorAction>();
+        List<EditorAction> history = new List<EditorAction>();
 
         Queue<(int, int)> floodQueue = new Queue<(int, int)>();
         floodQueue.Enqueue((x, y));
 
-        history.Push(new EditorAction {
+        history.Add(new EditorAction {
             X = x, Y = y, Layer = this.ActiveLayer,
             PreviousTile = this.Map.Layers[this.ActiveLayer][x, y],
             NextTile = this.ActiveTile
@@ -215,7 +215,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                     this.Map.Layers[this.ActiveLayer][nx, ny] == old
                 )
                 {
-                    history.Push(new EditorAction { 
+                    history.Add(new EditorAction { 
                         X = nx, Y = ny, Layer = this.ActiveLayer,
                         PreviousTile = this.Map.Layers[this.ActiveLayer][nx, ny],
                         NextTile = this.ActiveTile
@@ -314,8 +314,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                         NextTile = this.ActiveTile
                                     };
 
-                                    Stack<EditorAction> paintQueue = new Stack<EditorAction>();
-                                    paintQueue.Push(paintAction);
+                                    List<EditorAction> paintQueue = [ paintAction ];
                                     this.UndoHistory.Push(paintQueue);
                                 }
 
@@ -338,8 +337,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                         NextTile = 0
                                     };
 
-                                    Stack<EditorAction> paintQueue = new Stack<EditorAction>();
-                                    paintQueue.Push(paintAction);
+                                    List<EditorAction> paintQueue = [ paintAction ];
                                     this.UndoHistory.Push(paintQueue);
                                 }
 
