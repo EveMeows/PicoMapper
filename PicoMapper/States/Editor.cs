@@ -288,25 +288,27 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 }
 
                 // Camera controls
-                int delta = InputHelper.GetScrollDelta();
+                if (window.IsActive)
+                { 
+                    int delta = InputHelper.GetScrollDelta();
 
-                if (delta != 0)
-                {
-                    Vector2 mouseBefore = this.Camera.ScreenToWorld(mouse);
+                    if (delta != 0)
+                    {
+                        Vector2 mouseBefore = this.Camera.ScreenToWorld(mouse);
 
-                    float zoom = delta * 0.001f;
-                    this.Camera.Zoom = MathHelper.Clamp(this.Camera.Zoom + zoom, 0.65f, 6f);
-                    
-                    Vector2 mouseAfter = this.Camera.ScreenToWorld(mouse); 
+                        float zoom = delta * 0.001f;
+                        this.Camera.Zoom = MathHelper.Clamp(this.Camera.Zoom + zoom, 0.65f, 6f);
+                        
+                        Vector2 mouseAfter = this.Camera.ScreenToWorld(mouse); 
 
-                    this.Camera.Position -= Vector2.Floor(mouseAfter - mouseBefore);
+                        this.Camera.Position -= Vector2.Floor(mouseAfter - mouseBefore);
+                    }
+
+                    if (InputHelper.IsMouseDown(MouseButton.Left) && this.toggler.Active == Selected.Move)
+                    {
+                        this.Camera.Position -= InputHelper.GetMouseDelta() / this.Camera.Zoom;
+                    }
                 }
-
-                if (InputHelper.IsMouseDown(MouseButton.Left) && this.toggler.Active == Selected.Move)
-                {
-                    this.Camera.Position -= InputHelper.GetMouseDelta() / this.Camera.Zoom;
-                }
-
                 break;
 
             case EditorState.MenuOpen:
