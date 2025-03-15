@@ -148,8 +148,8 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         this.menus.Add("FILE", file);
 
         Menu edit = new Menu(new Rectangle(40, this.BGSize, 110, 105), this.window);
-        edit.Buttons.Add(MakeMenuButton("UNDO     CTRL + Z", new Vector2(45, this.BGSize + offset)));
-        edit.Buttons.Add(MakeMenuButton("REDO     CTRL + Y", new Vector2(45, this.BGSize + offset * 3)));
+        edit.Buttons.Add(MakeMenuButton("UNDO     CTRL + Z", new Vector2(45, this.BGSize + offset), (self) => { this.editor.Undo(); }));
+        edit.Buttons.Add(MakeMenuButton("REDO     CTRL + Y", new Vector2(45, this.BGSize + offset * 3), (self) => { this.editor.Redo(); }));
         edit.Buttons.Add(MakeMenuButton("CUT        CTRL + X", new Vector2(45, this.BGSize + offset * 5)));
         edit.Buttons.Add(MakeMenuButton("COPY     CTRL + C", new Vector2(45, this.BGSize + offset * 7)));
         edit.Buttons.Add(MakeMenuButton("PASTE  CTRL + V", new Vector2(45, this.BGSize + offset * 9)));
@@ -227,6 +227,16 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                 {
                     this.editor.SaveAs();
                 }
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.Z))
+            {
+                this.editor.Undo();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.Y))
+            {
+                this.editor.Redo();
             }
 
             if (InputHelper.IsKeyPressed(Keys.S))

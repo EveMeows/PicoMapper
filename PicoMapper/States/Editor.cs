@@ -13,6 +13,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 using PicoMapper.Forms;
 using System.Text.Json;
+using System.Collections;
 
 namespace PicoMapper.States;
 
@@ -45,6 +46,9 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
     public Vector2 MapMouseCoords = new Vector2();
     private bool justExited = false;
+
+    public Stack<Stack<EditorAction>> UndoHistory = new Stack<Stack<EditorAction>>();
+    public Stack<Stack<EditorAction>> RedoHistory = new Stack<Stack<EditorAction>>();
 
     #region Drawing
     private void DrawBorders(SpriteBatch batch)
@@ -86,6 +90,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         return split.Last();
     }
 
+    #region Editor
     public void Save()
     {
         if (this.FilePath is null)
@@ -142,6 +147,35 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         }
     }
 
+    public void Undo()
+    {
+        bool success = this.UndoHistory.TryPop(out Stack<EditorAction>? history);
+        if (success && history is not null)
+        {
+            this.RedoHistory.Push(new Stack<EditorAction>(history));
+
+            while (history.TryPop(out EditorAction? action))
+            {
+                this.Map.Layers[action.Layer][action.X, action.Y] = action.PreviousTile;
+            }
+        }
+    }
+
+    public void Redo()
+    {
+        bool success = this.RedoHistory.TryPop(out Stack<EditorAction>? history);
+        if (success && history is not null)
+        {
+            this.UndoHistory.Push(new Stack<EditorAction>(history));
+
+            while (history.TryPop(out EditorAction? action))
+            {
+                this.Map.Layers[action.Layer][action.X, action.Y] = action.NextTile;
+            }
+        }
+    }
+    #endregion
+
     // BFS Based FloodFill algo. God help me.
     // And thank you GfG
     private void FloodFill(int x, int y)
@@ -149,8 +183,16 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         int col = this.Map.Layers[this.ActiveLayer].GetLength(0);
         int row = this.Map.Layers[this.ActiveLayer].GetLength(1);
 
+        Stack<EditorAction> history = new Stack<EditorAction>();
+
         Queue<(int, int)> floodQueue = new Queue<(int, int)>();
         floodQueue.Enqueue((x, y));
+
+        history.Push(new EditorAction {
+            X = x, Y = y, Layer = this.ActiveLayer,
+            PreviousTile = this.Map.Layers[this.ActiveLayer][x, y],
+            NextTile = this.ActiveTile
+        });
 
         int old = this.Map.Layers[this.ActiveLayer][x, y];
         this.Map.Layers[this.ActiveLayer][x, y] = this.ActiveTile;
@@ -173,11 +215,19 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                     this.Map.Layers[this.ActiveLayer][nx, ny] == old
                 )
                 {
+                    history.Push(new EditorAction { 
+                        X = nx, Y = ny, Layer = this.ActiveLayer,
+                        PreviousTile = this.Map.Layers[this.ActiveLayer][nx, ny],
+                        NextTile = this.ActiveTile
+                    });
+
                     this.Map.Layers[this.ActiveLayer][nx, ny] = this.ActiveTile;
                     floodQueue.Enqueue((nx, ny));
                 }
             }
         }
+
+        this.UndoHistory.Push(history);
     }
 
     public override void LoadContent()
@@ -253,6 +303,22 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                 if (this.ActiveTile == 0)
                                     break;
 
+                                if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] != this.ActiveTile)
+                                {
+                                    EditorAction paintAction = new EditorAction
+                                    {
+                                        X = (int)this.MapMouseCoords.X,
+                                        Y = (int)this.MapMouseCoords.Y,
+                                        Layer = this.ActiveLayer,
+                                        PreviousTile = layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y],
+                                        NextTile = this.ActiveTile
+                                    };
+
+                                    Stack<EditorAction> paintQueue = new Stack<EditorAction>();
+                                    paintQueue.Push(paintAction);
+                                    this.UndoHistory.Push(paintQueue);
+                                }
+
                                 layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = this.ActiveTile;
                                 break;
 
@@ -260,6 +326,22 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                 // Skip if selected tile is reserved.
                                 if (this.ActiveTile == 0)
                                     break;
+
+                                if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] != 0)
+                                {
+                                    EditorAction paintAction = new EditorAction
+                                    {
+                                        X = (int)this.MapMouseCoords.X,
+                                        Y = (int)this.MapMouseCoords.Y,
+                                        Layer = this.ActiveLayer,
+                                        PreviousTile = layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y],
+                                        NextTile = 0
+                                    };
+
+                                    Stack<EditorAction> paintQueue = new Stack<EditorAction>();
+                                    paintQueue.Push(paintAction);
+                                    this.UndoHistory.Push(paintQueue);
+                                }
 
                                 layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = 0;
                                 break;
@@ -272,8 +354,11 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                 break;
 
                             default:
-                                    break;
+                                break;
                         }
+                    }
+                    else
+                    {
                     }
                 }
                 else
@@ -366,7 +451,9 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             this.NormalComponents.Draw(batch);
             this.NonIgnorableComponents.Draw(batch);
 
-            // batch.DrawString(this.font, $"Tiles: {this.TileCache.Count}, {this.Map.Tiles.Count}", new Vector2(5, 130), Color.White);
+            batch.DrawString(this.font, $"Undo: {this.UndoHistory.Count}", new Vector2(5, 130), Color.White);
+            batch.DrawString(this.font, $"Redo: {this.RedoHistory.Count}", new Vector2(5, 155), Color.White);
+
             // batch.DrawString(this.font, $"Zoom: {this.Camera.Zoom}", new Vector2(5, 130), Color.White);
             // batch.DrawString(this.font, $"Position: {this.Camera.Position}", new Vector2(5, 155), Color.White);
             // batch.DrawString(this.font, $"State: {this.State}", new Vector2(5, 180), Color.White);
