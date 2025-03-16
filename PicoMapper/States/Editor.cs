@@ -449,8 +449,8 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             this.NormalComponents.Draw(batch);
             this.NonIgnorableComponents.Draw(batch);
 
-            batch.DrawString(this.font, $"Undo: {this.UndoHistory.Count}", new Vector2(5, 130), Color.White);
-            batch.DrawString(this.font, $"Redo: {this.RedoHistory.Count}", new Vector2(5, 155), Color.White);
+            // batch.DrawString(this.font, $"Undo: {this.UndoHistory.Count}", new Vector2(5, 130), Color.White);
+            // batch.DrawString(this.font, $"Redo: {this.RedoHistory.Count}", new Vector2(5, 155), Color.White);
 
             // batch.DrawString(this.font, $"Zoom: {this.Camera.Zoom}", new Vector2(5, 130), Color.White);
             // batch.DrawString(this.font, $"Position: {this.Camera.Position}", new Vector2(5, 155), Color.White);

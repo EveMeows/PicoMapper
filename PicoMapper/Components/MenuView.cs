@@ -41,6 +41,14 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
     private readonly Editor editor;
 
+    private readonly float ButtonDelay = 150;
+
+    private bool isUndoing = false;
+    private float undoTime = 0;
+
+    private bool isRedoing = false;
+    private float redoTime = 0;
+
     #region Events
     private void Create(Button? self = null)
     { 
@@ -191,6 +199,8 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
     public void Update(GameTime time)
     {
+        float delta = (float)time.ElapsedGameTime.TotalMilliseconds;
+
         this.ui.Update(InputHelper.GetMousePosition());
 
         if (this.active is not null)
@@ -229,14 +239,24 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                 }
             }
 
-            if (InputHelper.IsKeyPressed(Keys.Z))
+            if (InputHelper.IsKeyDown(Keys.Z))
             {
-                this.editor.Undo();
+                if (!this.isUndoing)
+                {
+                    this.editor.Undo();
+                }
+
+                this.isUndoing = true;
             }
 
             if (InputHelper.IsKeyPressed(Keys.Y))
             {
-                this.editor.Redo();
+                if (!this.isRedoing)
+                {
+                    this.editor.Redo();
+                }
+
+                this.isRedoing = true;
             }
 
             if (InputHelper.IsKeyPressed(Keys.S))
@@ -279,6 +299,38 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
             {
                 this.ActiveLayer();
             }
+        }
+
+        if (this.isUndoing)
+        { 
+            this.undoTime += delta;
+            if (this.undoTime >= this.ButtonDelay)
+            {
+                this.undoTime = 0;
+                this.editor.Undo();
+            }
+        }
+
+        if (this.isRedoing)
+        {
+            this.redoTime += delta;
+            if (this.redoTime >= this.ButtonDelay)
+            {
+                this.redoTime = 0;
+                this.editor.Redo();
+            }
+        }
+
+        if (InputHelper.IsKeyUp(Keys.Z) && this.isUndoing)
+        {
+            this.undoTime = 0;
+            this.isUndoing = false;
+        }
+
+        if (InputHelper.IsKeyUp(Keys.Y) && this.isRedoing)
+        {
+            this.redoTime = 0;
+            this.isRedoing = false;
         }
     }
 
