@@ -50,6 +50,12 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     public Stack<List<EditorAction>> UndoHistory = new Stack<List<EditorAction>>();
     public Stack<List<EditorAction>> RedoHistory = new Stack<List<EditorAction>>();
 
+    private Vector2? start = null;
+    private Vector2? end = null;
+    private Rectangle? selection = null;
+
+    private bool shouldRestart = true;
+
     #region Drawing
     private void DrawBorders(SpriteBatch batch)
     { 
@@ -200,6 +206,17 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         int[] dx = [ -1, 1, 0, 0 ];
         int[] dy = [ 0, 0, -1, 1 ];
 
+        int sx = 0; int sy = 0;
+        int ex = col; int ey = row;
+
+        if (this.selection is not null)
+        {
+            sx = Math.Max(0, this.selection.Value.X);
+            sy = Math.Max(0, this.selection.Value.Y);
+            ex = Math.Min(col, this.selection.Value.X + this.selection.Value.Width + 1);
+            ey = Math.Min(row, this.selection.Value.Y + this.selection.Value.Height + 1);
+        }
+
         while (floodQueue.Count > 0)
         {
             (int ox, int oy) = floodQueue.Dequeue();
@@ -210,8 +227,8 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 int ny = oy + dy[i];
 
                 if (
-                    nx >= 0 && nx < col &&
-                    ny >= 0 && ny < row &&
+                    nx >= sx && nx < ex &&
+                    ny >= sy && ny < ey &&
                     this.Map.Layers[this.ActiveLayer][nx, ny] == old
                 )
                 {
@@ -303,6 +320,15 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                 if (this.ActiveTile == 0)
                                     break;
 
+                                // Skip if are selected but try to draw outside
+                                if (this.selection is not null)
+                                {
+                                    if (!Collision.CheckRectPoint(this.MapMouseCoords, this.selection.Value))
+                                    {
+                                        break;
+                                    }
+                                }
+
                                 if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] != this.ActiveTile)
                                 {
                                     EditorAction paintAction = new EditorAction
@@ -314,7 +340,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                         NextTile = this.ActiveTile
                                     };
 
-                                    List<EditorAction> paintQueue = [ paintAction ];
+                                    List<EditorAction> paintQueue = [paintAction];
                                     this.UndoHistory.Push(paintQueue);
                                 }
 
@@ -325,6 +351,15 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                 // Skip if selected tile is reserved.
                                 if (this.ActiveTile == 0)
                                     break;
+
+                                // Skip if are selected but try to draw outside
+                                if (this.selection is not null)
+                                {
+                                    if (!Collision.CheckRectPoint(this.MapMouseCoords, this.selection.Value))
+                                    {
+                                        break;
+                                    }
+                                }
 
                                 if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] != 0)
                                 {
@@ -337,7 +372,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                         NextTile = 0
                                     };
 
-                                    List<EditorAction> paintQueue = [ paintAction ];
+                                    List<EditorAction> paintQueue = [paintAction];
                                     this.UndoHistory.Push(paintQueue);
                                 }
 
@@ -348,15 +383,43 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                 if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] == this.ActiveTile)
                                     break;
 
+                                // Skip if are selected but try to draw outside
+                                if (this.selection is not null)
+                                {
+                                    if (!Collision.CheckRectPoint(this.MapMouseCoords, this.selection.Value))
+                                    {
+                                        break;
+                                    }
+                                }
+
                                 this.FloodFill((int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y);
+                                break;
+
+                            case Selected.Select:
+                                if (this.start is null || this.shouldRestart)
+                                {
+                                    this.start = this.MapMouseCoords;
+                                    this.shouldRestart = false;
+                                    break;
+                                }
+
+                                if (this.end != this.MapMouseCoords)
+                                {
+                                    this.end = this.MapMouseCoords;
+
+                                    // Calculate Rectangle
+                                    int rectX = (int)Math.Min(this.start.Value.X, this.end.Value.X);
+                                    int rectY = (int)Math.Min(this.start.Value.Y, this.end.Value.Y);
+                                    int rectWidth = (int)Math.Abs(this.end.Value.X - this.start.Value.X);
+                                    int rectHeight = (int)Math.Abs(this.end.Value.Y - this.start.Value.Y);
+
+                                    this.selection = new Rectangle(rectX, rectY, rectWidth, rectHeight);
+                                }
                                 break;
 
                             default:
                                 break;
                         }
-                    }
-                    else
-                    {
                     }
                 }
                 else
@@ -396,6 +459,19 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             default:
                 break;
         }
+
+        if (InputHelper.IsMouseUp(MouseButton.Left) && this.toggler.Active == Selected.Select)
+        {
+            this.shouldRestart = true;
+
+            if (this.start == this.end)
+            {
+                this.start = null;
+                this.end = null;
+
+                this.selection = null;
+            }
+        }
     }
 
     public override void Draw(GameTime time, SpriteBatch batch)
@@ -404,6 +480,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
         // Map
         batch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: this.Camera.Transform);
+        { 
             this.DrawBorders(batch);
 
             // Draw map
@@ -434,14 +511,36 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 }
             }
 
-            // Draw cursor
-            if (Collision.CheckRectPoint(this.Camera.ScreenToWorld(InputHelper.GetMousePosition()), this.bounds) && window.IsActive)
+            if (this.start is not null && this.end is not null)
             {
-                this.DrawRectangleLines(
-                    this.MapMouseCoords.X * this.Map.TileX, this.MapMouseCoords.Y * this.Map.TileY,
-                    this.Map.TileX, this.Map.TileY, Color.White, batch
-                );
+                if (this.selection is not null)
+                {
+                    this.DrawRectangleLines(
+                        this.selection.Value.X * this.Map.TileX,
+                        this.selection.Value.Y * this.Map.TileY,
+                        (this.selection.Value.Width + 1) * this.Map.TileX,
+                        (this.selection.Value.Height + 1) * this.Map.TileY,
+                        Color.White, batch
+                    );
+                }
+
+                // batch.Draw(this.pixel, new Rectangle((int)this.start.Value.X * this.Map.TileX, (int)this.start.Value.Y * this.Map.TileY, 8, 8), Color.Orange);
+                // batch.Draw(this.pixel, new Rectangle((int)this.end.Value.X * this.Map.TileX, (int)this.end.Value.Y * this.Map.TileY, 8, 8), Color.Orange);
             }
+
+            // Draw cursor
+            // We skip if we are in select mode
+            if (!InputHelper.IsMouseDown(MouseButton.Left) || this.toggler.Active != Selected.Select)
+            {
+                if (Collision.CheckRectPoint(this.Camera.ScreenToWorld(InputHelper.GetMousePosition()), this.bounds) && window.IsActive)
+                {
+                    this.DrawRectangleLines(
+                        this.MapMouseCoords.X * this.Map.TileX, this.MapMouseCoords.Y * this.Map.TileY,
+                        this.Map.TileX, this.Map.TileY, Color.White, batch
+                    );
+                }
+            }
+        }
         batch.End();
 
         // UI
