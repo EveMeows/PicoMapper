@@ -435,7 +435,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             }
 
             // Draw cursor
-            if (Collision.CheckRectPoint(this.Camera.ScreenToWorld(InputHelper.GetMousePosition()), this.bounds))
+            if (Collision.CheckRectPoint(this.Camera.ScreenToWorld(InputHelper.GetMousePosition()), this.bounds) && window.IsActive)
             {
                 this.DrawRectangleLines(
                     this.MapMouseCoords.X * this.Map.TileX, this.MapMouseCoords.Y * this.Map.TileY,

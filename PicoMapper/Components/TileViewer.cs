@@ -161,7 +161,7 @@ public class TileViewer : Component, IDrawableComponent, IUpdateableComponent
                 batch.Draw(tile.Value, new Vector2(this.viewRect.X + x * this.ViewSize.X, this.viewRect.Y + y * this.ViewSize.Y), null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
 
                 // Draw active
-                if (this.editor.ActiveTile == tile.Key && this.window.IsActive)
+                if (this.editor.ActiveTile == tile.Key)
                 {
                     this.DrawRectangleLines(this.viewRect.X + x * this.ViewSize.X, this.viewRect.Y + y * this.ViewSize.Y, this.ViewSize.X, this.ViewSize.Y, Color.White* 0.8f, batch);
                 }
