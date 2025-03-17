@@ -13,7 +13,6 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 using PicoMapper.Forms;
 using System.Text.Json;
-using System.Collections;
 
 namespace PicoMapper.States;
 
@@ -50,9 +49,14 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
     public Stack<List<EditorAction>> UndoHistory = new Stack<List<EditorAction>>();
     public Stack<List<EditorAction>> RedoHistory = new Stack<List<EditorAction>>();
 
+    public ClipboardItem? Clipboard = null;
+
     private Vector2? start = null;
     private Vector2? end = null;
     private Rectangle? selection = null;
+
+    private int[,]? buffer;
+    private bool bufferMoved = false;
 
     private bool shouldRestart = true;
 
@@ -180,7 +184,95 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
             }
         }
     }
+
+    public void Copy()
+    {
+        if (this.buffer is null || this.selection is null)
+        {
+            this.toggler.ToolTip = "No sprite selection to copy!";
+            return;
+        }
+
+        this.Clipboard = new ClipboardItem { 
+            Buffer = this.buffer,
+            Selection = this.selection.Value
+        };
+
+        this.toggler.ToolTip = $"Copied {this.selection.Value.Width}x{this.selection.Value.Height} px";
+    }
+
+    public void Cut()
+    {
+        this.Copy();
+
+        this.start = null;
+        this.end = null;
+
+        this.selection = null;
+        this.bufferMoved = false;
+        
+        this.shouldRestart = true;
+
+        if (this.buffer is not null && this.selection is not null)
+        {
+            for (int x = 0; x < this.buffer.GetLength(0); x++)
+            {
+                for (int y = 0; y < this.buffer.GetLength(1); y++)
+                {
+                    this.Map.Layers[this.ActiveLayer][x + this.selection.Value.X, y + this.selection.Value.Y] = 0;
+                }
+            }
+        }
+
+        this.buffer = null;
+    }
+
+    public void Paste()
+    {
+        if (this.Clipboard is null)
+        {
+            this.toggler.ToolTip = "No pixels in clipboard.";
+            return;
+        }
+
+        if (this.buffer is not null && this.selection is not null)
+        {
+            for (int x = 0; x < this.buffer.GetLength(0); x++)
+            {
+                for (int y = 0; y < this.buffer.GetLength(1); y++)
+                {
+                    this.Map.Layers[this.ActiveLayer][x + this.selection.Value.X, y + this.selection.Value.Y] = 0;
+                }
+            }
+        }
+
+        this.start = new Vector2(this.Clipboard.Selection.X, this.Clipboard.Selection.Y);
+        this.end = new Vector2(this.Clipboard.Selection.X + this.Clipboard.Selection.Width, this.Clipboard.Selection.Y + this.Clipboard.Selection.Height);
+
+        this.selection = this.Clipboard.Selection;
+        this.buffer = this.Clipboard.Buffer;
+
+        this.bufferMoved = false;
+
+        this.toggler.Active = Selected.Select;
+    }
     #endregion
+
+    private void WriteBuffer()
+    {
+        if (this.buffer is not null && this.selection is not null)
+        {
+            for (int x = 0; x < this.buffer.GetLength(0); x++)
+            {
+                for (int y = 0; y < this.buffer.GetLength(1); y++)
+                {
+                    this.Map.Layers[this.ActiveLayer][x + this.selection.Value.X, y + this.selection.Value.Y] = this.buffer[x, y];
+                }
+            }
+        }
+
+        this.buffer = null;
+    }
 
     // BFS Based FloodFill algo. God help me.
     // And thank you GfG
@@ -322,12 +414,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
                                 // Skip if are selected but try to draw outside
                                 if (this.selection is not null)
-                                {
-                                    if (!Collision.CheckRectPoint(this.MapMouseCoords, this.selection.Value))
-                                    {
-                                        break;
-                                    }
-                                }
+                                    break;
 
                                 if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] != this.ActiveTile)
                                 {
@@ -354,12 +441,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
                                 // Skip if are selected but try to draw outside
                                 if (this.selection is not null)
-                                {
-                                    if (!Collision.CheckRectPoint(this.MapMouseCoords, this.selection.Value))
-                                    {
-                                        break;
-                                    }
-                                }
+                                    break;
 
                                 if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] != 0)
                                 {
@@ -385,17 +467,14 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
 
                                 // Skip if are selected but try to draw outside
                                 if (this.selection is not null)
-                                {
-                                    if (!Collision.CheckRectPoint(this.MapMouseCoords, this.selection.Value))
-                                    {
-                                        break;
-                                    }
-                                }
+                                    break;
 
                                 this.FloodFill((int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y);
                                 break;
 
                             case Selected.Select:
+                                this.WriteBuffer();
+                                
                                 if (this.start is null || this.shouldRestart)
                                 {
                                     this.start = this.MapMouseCoords;
@@ -460,16 +539,196 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 break;
         }
 
-        if (InputHelper.IsMouseUp(MouseButton.Left) && this.toggler.Active == Selected.Select)
+        #region Selection Movement
+        if (this.selection is not null)
         {
-            this.shouldRestart = true;
-
-            if (this.start == this.end)
+            // End selection
+            if (InputHelper.IsKeyPressed(Keys.Enter))
             {
+                this.WriteBuffer();
+
                 this.start = null;
                 this.end = null;
 
                 this.selection = null;
+                this.bufferMoved = false;
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.Right) && this.shouldRestart)
+            {
+                if (this.selection is not null)
+                {
+                    Rectangle newRight = this.selection.Value;
+                    newRight.X++;
+
+                    if (newRight.X + newRight.Width + 1 > this.Map.Layers[this.ActiveLayer].GetLength(0))
+                    {
+                        newRight.Width--;
+                        if (newRight.Width < 0)
+                        {
+                            newRight.X--;
+                            newRight.Width = 0;
+                        }
+
+                        if (this.buffer is not null)
+                        {
+                            int[,] old = this.buffer;
+                            this.buffer = new int[newRight.Width + 1, newRight.Height + 1];
+                            for (int y = 0; y < newRight.Height + 1; y++)
+                            {
+                                for (int x = 0; x < newRight.Width + 1; x++)
+                                {
+                                    this.buffer[x, y] = old[x, y];
+                                }
+                            }
+                        }
+                    }
+
+                    this.selection = newRight;
+                }
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.Left) && this.shouldRestart)
+            {
+                if (this.selection is not null)
+                {
+                    Rectangle newLeft = this.selection.Value;
+                    newLeft.X--;
+
+                    if (newLeft.X < 0)
+                    {
+                        newLeft.X++;
+
+                        newLeft.Width--;
+                        if (newLeft.Width < 0)
+                        {
+                            newLeft.Width = 0;
+                        }
+
+                        if (this.buffer is not null)
+                        {
+                            int[,] old = this.buffer;
+                            this.buffer = new int[newLeft.Width + 1, newLeft.Height + 1];
+                            for (int y = 0; y < newLeft.Height + 1; y++)
+                            {
+                                for (int x = newLeft.Width; x >= 0; x--)
+                                {
+                                    this.buffer[x, y] = old[x, y];
+                                }
+                            }
+                        }
+                    }
+
+                    this.selection = newLeft;
+                }
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.Up) && this.shouldRestart)
+            {
+                if (this.selection is not null)
+                {
+                    Rectangle newUp = this.selection.Value;
+                    newUp.Y--;
+
+                    if (newUp.Y < 0)
+                    {
+                        newUp.Y++;
+
+                        newUp.Height--;
+                        if (newUp.Height < 0)
+                        {
+                            newUp.Height = 0;
+                        }
+
+                        if (this.buffer is not null)
+                        {
+                            int[,] old = this.buffer;
+                            this.buffer = new int[newUp.Width + 1, newUp.Height + 1];
+                            for (int y = 0; y < newUp.Height + 1; y++)
+                            {
+                                for (int x = 0; x < newUp.Width + 1; x++)
+                                {
+                                    this.buffer[x, y] = old[x, y];
+                                }
+                            }
+                        }
+                    }
+
+                    this.selection = newUp;
+                }
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.Down) && this.shouldRestart)
+            {
+                if (this.selection is not null)
+                {
+                    Rectangle newDown = this.selection.Value;
+                    newDown.Y++;
+
+                    if (newDown.Y + newDown.Height + 1 > this.Map.Layers[this.ActiveLayer].GetLength(1))
+                    {
+                        newDown.Height--;
+                        if (newDown.Height < 0)
+                        {
+                            newDown.Y--;
+                            newDown.Height = 0;
+                        }
+
+                        if (this.buffer is not null)
+                        {
+                            int[,] old = this.buffer;
+                            this.buffer = new int[newDown.Width + 1, newDown.Height + 1];
+                            for (int y = newDown.Height; y >= 0; y--)
+                            {
+                                for (int x = 0; x < newDown.Width + 1; x++)
+                                {
+                                    this.buffer[x, y] = old[x, y];
+                                }
+                            }
+                        }
+                    }
+
+                    this.selection = newDown;
+                }
+            }
+        }
+        #endregion
+
+        if (this.toggler.Active == Selected.Select)
+        {
+            if (InputHelper.IsMouseUp(MouseButton.Left))
+            {
+                if (this.buffer is null && this.selection is not null)
+                {
+                    this.buffer = new int[this.selection.Value.Width + 1, this.selection.Value.Height + 1];
+                    for (int y = 0; y < this.selection.Value.Height + 1; y++)
+                    {
+                        for (int x = 0; x < this.selection.Value.Width + 1; x++)
+                        {
+                            this.buffer[x, y] = this.Map.Layers[this.ActiveLayer][this.selection.Value.X + x, this.selection.Value.Y + y];
+                            this.Map.Layers[this.ActiveLayer][x + this.selection.Value.X, y + this.selection.Value.Y] = 0;
+                        }
+                    }
+                }
+
+                this.shouldRestart = true;
+            }
+
+            // Delete Selection
+            if (InputHelper.IsKeyPressed(Keys.Delete))
+            {
+                if (!this.bufferMoved && this.buffer is not null && this.selection is not null)
+                {
+                    for (int y = 0; y < this.selection.Value.Height + 1; y++)
+                    {
+                        for (int x = 0; x < this.selection.Value.Width + 1; x++)
+                        {
+                            this.Map.Layers[this.ActiveLayer][x + this.selection.Value.X, y + this.selection.Value.Y] = 0;
+                        }
+                    }
+                }
+
+                this.buffer = null;
             }
         }
     }
@@ -511,6 +770,35 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                 }
             }
 
+            // Draw selection buffer on top of map
+            if (this.buffer is not null && this.selection is not null)
+            {
+                for (int x = 0; x < this.buffer.GetLength(0); x++)
+                {
+                    for (int y = 0; y < this.buffer.GetLength(1); y++)
+                    {
+                        if (this.buffer[x, y] == 0) continue;
+
+                        bool success = this.TileCache.TryGetValue(this.buffer[x, y], out Texture2D? texture);
+                        if (!success)
+                        {
+                            MessageBox.Show(
+                                "Something went wrong trying to draw the map. The app will now close.",
+                                "Critical Error!",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error
+                            );
+
+                            Environment.Exit(1);
+                        }
+
+                        int wx = (this.selection.Value.X + x) * this.Map.TileX;
+                        int wy = (this.selection.Value.Y + y) * this.Map.TileY;
+
+                        batch.Draw(texture, new Vector2(wx, wy), Color.White);
+                    }
+                }
+            }
+
             if (this.start is not null && this.end is not null)
             {
                 if (this.selection is not null)
@@ -520,7 +808,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                         this.selection.Value.Y * this.Map.TileY,
                         (this.selection.Value.Width + 1) * this.Map.TileX,
                         (this.selection.Value.Height + 1) * this.Map.TileY,
-                        Color.White, batch
+                        Colours.Grey, batch
                     );
                 }
 

@@ -158,9 +158,9 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         Menu edit = new Menu(new Rectangle(40, this.BGSize, 110, 105), this.window);
         edit.Buttons.Add(MakeMenuButton("UNDO     CTRL + Z", new Vector2(45, this.BGSize + offset), (self) => { this.editor.Undo(); }));
         edit.Buttons.Add(MakeMenuButton("REDO     CTRL + Y", new Vector2(45, this.BGSize + offset * 3), (self) => { this.editor.Redo(); }));
-        edit.Buttons.Add(MakeMenuButton("CUT        CTRL + X", new Vector2(45, this.BGSize + offset * 5)));
-        edit.Buttons.Add(MakeMenuButton("COPY     CTRL + C", new Vector2(45, this.BGSize + offset * 7)));
-        edit.Buttons.Add(MakeMenuButton("PASTE  CTRL + V", new Vector2(45, this.BGSize + offset * 9)));
+        edit.Buttons.Add(MakeMenuButton("CUT        CTRL + X", new Vector2(45, this.BGSize + offset * 5), (self) => { this.editor.Cut(); }));
+        edit.Buttons.Add(MakeMenuButton("COPY     CTRL + C", new Vector2(45, this.BGSize + offset * 7), (self) => { this.editor.Copy(); }));
+        edit.Buttons.Add(MakeMenuButton("PASTE  CTRL + V", new Vector2(45, this.BGSize + offset * 9), (self) => { this.editor.Paste(); }));
         this.menus.Add("EDIT", edit);
 
         Menu view = new Menu(new Rectangle(78, this.BGSize, 250, 165), this.window);
@@ -237,6 +237,21 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                 {
                     this.editor.SaveAs();
                 }
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.X))
+            {
+                this.editor.Cut();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.C))
+            {
+                this.editor.Copy();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.V))
+            {
+                this.editor.Paste();
             }
 
             if (InputHelper.IsKeyDown(Keys.Z))

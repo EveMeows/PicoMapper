@@ -63,6 +63,10 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
         if (self is ToggleButton btn)
         {
             this.ToolTip = $"{btn.Type} Tool ({btn.Keybind})";
+            if (btn.Type == Selected.Select)
+            {
+                this.ToolTip = $"{btn.Type} Tool ({btn.Keybind}) (WIP! Janky (NO UNDOS))";
+            }
         }
     }
 
