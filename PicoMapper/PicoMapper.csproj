@@ -16,6 +16,12 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Content\Icons\Icon.ico</ApplicationIcon>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/EveMeows/PicoMapper</PackageProjectUrl>
+    <PackageIcon>Icon.ico</PackageIcon>
+    <RepositoryUrl>https://github.com/EveMeows/PicoMapper</RepositoryUrl>
+    <AssemblyVersion>0.9.1</AssemblyVersion>
+    <FileVersion>0.9.1</FileVersion>
   </PropertyGroup>
   
   <ItemGroup>
@@ -42,6 +48,20 @@
   </ItemGroup>
 	
   <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+	
+  <ItemGroup>
     <ProjectReference Include="..\MonoGayme.Core\MonoGayme.Core.csproj" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <None Update="Content\Icons\Icon.ico">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 </Project>
