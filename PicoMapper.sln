@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoGayme.Core", "..\MonoGayme\MonoGayme.Core\MonoGayme.Core.csproj", "{463F2C79-0A5E-61FB-8A16-6E9366E855EB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoGayme.Core", "MonoGayme.Core\MonoGayme.Core.csproj", "{2112EF96-2F42-BA4F-A496-6FEFEE3C1D9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{19358EF7-029D-4B19-BC42-EDEEF084CA77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19358EF7-029D-4B19-BC42-EDEEF084CA77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19358EF7-029D-4B19-BC42-EDEEF084CA77}.Release|Any CPU.Build.0 = Release|Any CPU
-		{463F2C79-0A5E-61FB-8A16-6E9366E855EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{463F2C79-0A5E-61FB-8A16-6E9366E855EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{463F2C79-0A5E-61FB-8A16-6E9366E855EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{463F2C79-0A5E-61FB-8A16-6E9366E855EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2112EF96-2F42-BA4F-A496-6FEFEE3C1D9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2112EF96-2F42-BA4F-A496-6FEFEE3C1D9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2112EF96-2F42-BA4F-A496-6FEFEE3C1D9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2112EF96-2F42-BA4F-A496-6FEFEE3C1D9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
