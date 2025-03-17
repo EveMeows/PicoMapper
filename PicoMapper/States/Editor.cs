@@ -405,6 +405,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                     {
                         int[,] layer = this.Map.Layers[this.ActiveLayer];
 
+                        #region Active Handler
                         switch (this.toggler.Active)
                         {
                             case Selected.Pencil:
@@ -499,6 +500,7 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                             default:
                                 break;
                         }
+                        #endregion
                     }
                 }
                 else

@@ -97,7 +97,7 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
             this.CreateButton(Selected.Pencil, "UI/Buttons/Pencil", this.Offset, Keys.D),
             this.CreateButton(Selected.Eraser, "UI/Buttons/Eraser", this.SpriteSize + this.Offset * 2, Keys.E),
             this.CreateButton(Selected.Bucket, "UI/Buttons/Bucket", this.SpriteSize * 2 + this.Offset * 3, Keys.B),
-            this.CreateButton(Selected.Select, "UI/Buttons/Move", this.SpriteSize * 3 + this.Offset * 4, Keys.S),
+            this.CreateButton(Selected.Select, "UI/Buttons/Move", this.SpriteSize * 3 + this.Offset * 4, Keys.M),
             this.CreateButton(Selected.Move, "UI/Buttons/Hand", this.SpriteSize * 4 + this.Offset * 5, Keys.Space),
         ];
 
