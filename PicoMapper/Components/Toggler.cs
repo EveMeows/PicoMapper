@@ -115,6 +115,8 @@ public class Toggler : Component, IDrawableComponent, IUpdateableComponent
         {
             btn.Update(InputHelper.GetMousePosition());
 
+            if (InputHelper.IsKeyDown(Keys.LeftControl)) continue;
+
             if (InputHelper.IsKeyPressed(btn.Keybind))
             { 
                 foreach (ToggleButton others in this.buttons)

@@ -231,27 +231,32 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                 if (InputHelper.IsKeyPressed(Keys.C))
                 {
                     this.Centre();
+                    return;
                 }
 
                 if (InputHelper.IsKeyPressed(Keys.S))
                 {
                     this.editor.SaveAs();
+                    return;
                 }
             }
 
             if (InputHelper.IsKeyPressed(Keys.X))
             {
                 this.editor.Cut();
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.C))
             {
                 this.editor.Copy();
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.V))
             {
                 this.editor.Paste();
+                return;
             }
 
             if (InputHelper.IsKeyDown(Keys.Z))
@@ -277,42 +282,50 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
             if (InputHelper.IsKeyPressed(Keys.S))
             {
                 this.editor.Save();
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.O))
             {
                 Utilities.Open(this.window);
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.N))
             {
                 this.Create();
+                return;
             }
 
 
             if (InputHelper.IsKeyPressed(Keys.A))
             {
                 this.NewTile();
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.R))
             {
                 this.RemoveTile();
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.H))
             {
                 this.ToggleHandle();
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.T))
             {
                 this.ToggleTiles();
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.L))
             {
                 this.ActiveLayer();
+                return;
             }
         }
 
