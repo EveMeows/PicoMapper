@@ -62,6 +62,7 @@
     <None Update="Content\Icons\Icon.ico">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>

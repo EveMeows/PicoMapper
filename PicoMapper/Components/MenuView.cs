@@ -100,6 +100,12 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
     { 
         this.editor.OnlyActiveLayer = !this.editor.OnlyActiveLayer;
     }
+
+    private void SwapLayers(Button? self = null)
+    {
+        using LayerSwapper swapper = new LayerSwapper(this.editor);
+        swapper.ShowDialog();
+    }
     #endregion
 
     private void Reset()
@@ -177,10 +183,15 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         tiles.Buttons.Add(MakeMenuButton("REMOVE TILE    CTRL + R", new Vector2(120, this.BGSize + offset * 3), this.RemoveTile));
         this.menus.Add("TILES", tiles);
 
+        Menu layers = new Menu(new Rectangle(160, this.BGSize, 158, 25), this.window);
+        layers.Buttons.Add(MakeMenuButton("SWAP LAYERS   CTRL + W", new Vector2(165, this.BGSize + offset), this.SwapLayers));
+        this.menus.Add("LAYERS", layers);
+
         this.ui.Add(MakeButton("FILE", 2));
         this.ui.Add(MakeButton("EDIT", 40));
         this.ui.Add(MakeButton("VIEW", 78));
         this.ui.Add(MakeButton("TILES", 115));
+        this.ui.Add(MakeButton("LAYERS", 160));
     }
     
     public MenuView(Mapper window, Editor editor)

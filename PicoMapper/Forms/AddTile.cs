@@ -2,6 +2,7 @@
 using MonoGayme.Core.States;
 using PicoMapper.Models;
 using PicoMapper.States;
+using SharpDX.Direct3D9;
 
 namespace PicoMapper.Forms;
 
@@ -46,6 +47,17 @@ public partial class AddTile : Form
         State? state = this.window.Context.State;
 
         bool idConverted = int.TryParse(this.IDField.Text.Trim(), out int id);
+        if (this.IDField.Text.Trim() == "")
+        {
+            MessageBox.Show(
+                $"You cannot leave empty boxes!",
+                "Input not valid!",
+                MessageBoxButtons.OK, MessageBoxIcon.Error
+            );
+
+            return;
+        }
+
         if (!idConverted)
         {
             MessageBox.Show(

@@ -42,6 +42,17 @@ public partial class RemoveTile : Form
     private void Remove_Click(object sender, EventArgs e)
     {
         bool idConverted = int.TryParse(this.TileIDField.Text.Trim(), out int id);
+        if (this.TileIDField.Text.Trim() == "")
+        {
+            MessageBox.Show(
+                $"You cannot leave empty boxes!",
+                "Input not valid!",
+                MessageBoxButtons.OK, MessageBoxIcon.Error
+            );
+
+            return;
+        }
+
         if (!idConverted)
         { 
             MessageBox.Show(

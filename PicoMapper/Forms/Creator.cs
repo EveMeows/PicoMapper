@@ -18,6 +18,17 @@ public partial class Creator : Form
 
     private int? Validate(TextBox box)
     {
+        if (box.Text.Trim() == "")
+        {
+            MessageBox.Show(
+                $"You cannot leave empty boxes!",
+                "Input not valid!",
+                MessageBoxButtons.OK, MessageBoxIcon.Error
+            );
+
+            return null;
+        }
+
         if (int.TryParse(box.Text.Trim(), out int number))
         {
             if (number <= 0 || number > int.MaxValue)
