@@ -252,6 +252,12 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                 }
             }
 
+            if (InputHelper.IsKeyPressed(Keys.W))
+            {
+                this.SwapLayers();
+                return;
+            }
+
             if (InputHelper.IsKeyPressed(Keys.X))
             {
                 this.editor.Cut();
