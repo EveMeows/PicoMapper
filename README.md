@@ -5,6 +5,8 @@ PicoMapper is a Pico8-like TileMap Editor for Windows!
 ## Showcase
 ![PicoMapper](./Images/Showcase.png)
 
+Get it on [itch](https://eve-meows.itch.io/pico-mapper)!
+
 ## Credits
 The Pico8 is created by Zep under [LexalOffle](https://www.lexaloffle.com/)!
 
