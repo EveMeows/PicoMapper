@@ -7,7 +7,7 @@ namespace PicoMapper;
 
 public static class Utilities
 {
-    public static void Open(Mapper window)
+    public static bool Open(Mapper window)
     {
         try
         {
@@ -35,16 +35,21 @@ public static class Utilities
                 MessageBoxButtons.OK, MessageBoxIcon.Error
             );
 
-            return;
+            return false;
         }
+
+        return true;
     }
 
     public static bool RefreshCache(Mapper window, Editor editor)
-    { 
+    {
         editor.TileCache.Clear();
-        foreach (Tile tile in editor.Map.Tiles)
+
+        for (int i = editor.Map.Tiles.Count - 1; i >= 0; i--)
         {
+            Tile tile = editor.Map.Tiles[i];
             Texture2D texture;
+
             try
             {
                 using FileStream stream = new FileStream(tile.Path, FileMode.Open, FileAccess.Read);
@@ -53,12 +58,13 @@ public static class Utilities
             catch (Exception err)
             {
                 MessageBox.Show(
-                    $"An error occoured parsing the texture: {err.Message}",
+                    $"An error occurred parsing the texture: {err.Message}",
                     "Invalid Input!",
                     MessageBoxButtons.OK, MessageBoxIcon.Error
                 );
 
-                return false;
+                editor.Map.Tiles.RemoveAt(i);
+                continue;
             }
 
             bool success = editor.TileCache.TryAdd(tile.ID, texture);

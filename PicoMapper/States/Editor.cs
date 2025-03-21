@@ -363,7 +363,11 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
         else 
         {
             window.Window.Title = $"Pico Mapper ({this.GetName()})";
-            if (!Utilities.RefreshCache(window, this)) return;
+            if (!Utilities.RefreshCache(window, this))
+            {
+                this.TileCache.Clear();
+                return;
+            }
         }
 
         this.bounds = new Rectangle(
@@ -758,13 +762,27 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                         bool success = this.TileCache.TryGetValue(layer[x, y], out Texture2D? texture);
                         if (!success)
                         {
-                            MessageBox.Show(
-                                "Something went wrong trying to draw the map. The app will now close.",
-                                "Critical Error!",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error
-                            );
+                            try
+                            {
+                                Rectangle rect = new Rectangle(x * this.Map.TileX, y * this.Map.TileY, this.Map.TileX, this.Map.TileY);
+                                if (this.MapMouseCoords == new Vector2(x, y))
+                                {
+                                    this.toggler.ToolTip = $"X: {x} Y: {y} (ID {layer[x, y]} MISSING)";
+                                }
 
-                            Environment.Exit(1);
+                                batch.Draw(this.pixel, rect, Color.Red);
+                                continue;
+                            }
+                            catch
+                            {
+                                MessageBox.Show(
+                                    "Something went wrong trying to draw the map. The app will now close.",
+                                    "Critical Error!",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error
+                                );
+
+                                Environment.Exit(1);
+                            }
                         }
 
                         batch.Draw(texture, new Vector2(x * this.Map.TileX, y * this.Map.TileY), Color.White);
