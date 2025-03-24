@@ -410,19 +410,19 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                         int[,] layer = this.Map.Layers[this.ActiveLayer];
 
                         #region Active Handler
-                        try
+                        switch (this.toggler.Active)
                         {
-                            switch (this.toggler.Active)
-                            {
-                                case Selected.Pencil:
-                                    // Skip if selected tile is reserved.
-                                    if (this.ActiveTile == 0)
-                                        break;
+                            case Selected.Pencil:
+                                // Skip if selected tile is reserved.
+                                if (this.ActiveTile == 0)
+                                    break;
 
-                                    // Skip if are selected but try to draw outside
-                                    if (this.selection is not null)
-                                        break;
+                                // Skip if are selected but try to draw outside
+                                if (this.selection is not null)
+                                    break;
 
+                                try
+                                {
                                     if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] != this.ActiveTile)
                                     {
                                         EditorAction paintAction = new EditorAction
@@ -437,19 +437,26 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                         List<EditorAction> paintQueue = [paintAction];
                                         this.UndoHistory.Push(paintQueue);
                                     }
+                                }
+                                catch
+                                {
+                                    return;
+                                }
 
-                                    layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = this.ActiveTile;
+                                layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = this.ActiveTile;
+                                break;
+
+                            case Selected.Eraser:
+                                // Skip if selected tile is reserved.
+                                if (this.ActiveTile == 0)
                                     break;
 
-                                case Selected.Eraser:
-                                    // Skip if selected tile is reserved.
-                                    if (this.ActiveTile == 0)
-                                        break;
+                                // Skip if are selected but try to draw outside
+                                if (this.selection is not null)
+                                    break;
 
-                                    // Skip if are selected but try to draw outside
-                                    if (this.selection is not null)
-                                        break;
-
+                                try
+                                {
                                     if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] != 0)
                                     {
                                         EditorAction paintAction = new EditorAction
@@ -464,53 +471,52 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                         List<EditorAction> paintQueue = [paintAction];
                                         this.UndoHistory.Push(paintQueue);
                                     }
+                                }
+                                catch
+                                {
+                                    return;
+                                }
 
-                                    layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = 0;
+                                layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] = 0;
+                                break;
+
+                            case Selected.Bucket:
+                                if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] == this.ActiveTile)
                                     break;
 
-                                case Selected.Bucket:
-                                    if (layer[(int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y] == this.ActiveTile)
-                                        break;
-
-                                    // Skip if are selected but try to draw outside
-                                    if (this.selection is not null)
-                                        break;
-
-                                    this.FloodFill((int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y);
+                                // Skip if are selected but try to draw outside
+                                if (this.selection is not null)
                                     break;
 
-                                case Selected.Select:
-                                    this.WriteBuffer();
+                                this.FloodFill((int)this.MapMouseCoords.X, (int)this.MapMouseCoords.Y);
+                                break;
 
-                                    if (this.start is null || this.shouldRestart)
-                                    {
-                                        this.start = this.MapMouseCoords;
-                                        this.shouldRestart = false;
-                                        break;
-                                    }
-
-                                    if (this.end != this.MapMouseCoords)
-                                    {
-                                        this.end = this.MapMouseCoords;
-
-                                        // Calculate Rectangle
-                                        int rectX = (int)Math.Min(this.start.Value.X, this.end.Value.X);
-                                        int rectY = (int)Math.Min(this.start.Value.Y, this.end.Value.Y);
-                                        int rectWidth = (int)Math.Abs(this.end.Value.X - this.start.Value.X);
-                                        int rectHeight = (int)Math.Abs(this.end.Value.Y - this.start.Value.Y);
-
-                                        this.selection = new Rectangle(rectX, rectY, rectWidth, rectHeight);
-                                    }
+                            case Selected.Select:
+                                this.WriteBuffer();
+                                
+                                if (this.start is null || this.shouldRestart)
+                                {
+                                    this.start = this.MapMouseCoords;
+                                    this.shouldRestart = false;
                                     break;
+                                }
 
-                                default:
-                                    break;
-                            }
-                        }
-                        catch
-                        {
-                            // LOL
-                            return;
+                                if (this.end != this.MapMouseCoords)
+                                {
+                                    this.end = this.MapMouseCoords;
+
+                                    // Calculate Rectangle
+                                    int rectX = (int)Math.Min(this.start.Value.X, this.end.Value.X);
+                                    int rectY = (int)Math.Min(this.start.Value.Y, this.end.Value.Y);
+                                    int rectWidth = (int)Math.Abs(this.end.Value.X - this.start.Value.X);
+                                    int rectHeight = (int)Math.Abs(this.end.Value.Y - this.start.Value.Y);
+
+                                    this.selection = new Rectangle(rectX, rectY, rectWidth, rectHeight);
+                                }
+                                break;
+
+                            default:
+                                break;
                         }
                         #endregion
                     }
