@@ -108,6 +108,18 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         using LayerSwapper swapper = new LayerSwapper(this.editor);
         swapper.ShowDialog();
     }
+
+    private void RemoveLayer(Button? self = null)
+    { 
+        using LayerRemover remover = new LayerRemover(this.editor);
+        remover.ShowDialog();
+    }
+
+    private void MoveLayer(Button? self = null)
+    {
+        using LayerMover mover = new LayerMover(this.editor);
+        mover.ShowDialog();
+    }
     #endregion
 
     private void Reset()
@@ -183,10 +195,12 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         Menu tiles = new Menu(new Rectangle(115, this.BGSize, 158, 45), this.window);
         tiles.Buttons.Add(MakeMenuButton("ADD TILE            CTRL + A", new Vector2(120, this.BGSize + offset), this.NewTile));
         tiles.Buttons.Add(MakeMenuButton("REMOVE TILE    CTRL + R", new Vector2(120, this.BGSize + offset * 3), this.RemoveTile));
-        this.menus.Add("TILES", tiles);
+        this.menus.Add("TILES", tiles); 
 
-        Menu layers = new Menu(new Rectangle(160, this.BGSize, 158, 25), this.window);
-        layers.Buttons.Add(MakeMenuButton("SWAP LAYERS   CTRL + W", new Vector2(165, this.BGSize + offset), this.SwapLayers));
+        Menu layers = new Menu(new Rectangle(160, this.BGSize, 162, 70), this.window);
+        layers.Buttons.Add(MakeMenuButton("SWAP LAYERS      CTRL + W", new Vector2(165, this.BGSize + offset), this.SwapLayers));
+        layers.Buttons.Add(MakeMenuButton("MOVE LAYER        CTRL + M", new Vector2(165, this.BGSize + offset * 3), this.MoveLayer));
+        layers.Buttons.Add(MakeMenuButton("REMOVE LAYER   CTRL + D", new Vector2(165, this.BGSize + offset * 5), this.RemoveLayer));
         this.menus.Add("LAYERS", layers);
 
         this.ui.Add(MakeButton("FILE", 2));
@@ -252,6 +266,18 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
                     this.editor.SaveAs();
                     return;
                 }
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.D))
+            {
+                this.RemoveLayer();
+                return;
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.M))
+            {
+                this.MoveLayer();
+                return;
             }
 
             if (InputHelper.IsKeyPressed(Keys.W))

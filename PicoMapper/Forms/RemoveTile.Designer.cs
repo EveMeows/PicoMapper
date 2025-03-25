@@ -37,18 +37,20 @@ partial class RemoveTile
         // 
         // Cancel
         // 
-        this.Cancel.Location = new Point(105, 71);
+        this.Cancel.Location = new Point(120, 95);
+        this.Cancel.Margin = new Padding(3, 4, 3, 4);
         this.Cancel.Name = "Cancel";
-        this.Cancel.Size = new Size(75, 23);
+        this.Cancel.Size = new Size(86, 31);
         this.Cancel.TabIndex = 0;
         this.Cancel.Text = "Cancel";
         this.Cancel.UseVisualStyleBackColor = true;
         // 
         // Remove
         // 
-        this.Remove.Location = new Point(12, 71);
+        this.Remove.Location = new Point(14, 95);
+        this.Remove.Margin = new Padding(3, 4, 3, 4);
         this.Remove.Name = "Remove";
-        this.Remove.Size = new Size(75, 23);
+        this.Remove.Size = new Size(86, 31);
         this.Remove.TabIndex = 1;
         this.Remove.Text = "Remove";
         this.Remove.UseVisualStyleBackColor = true;
@@ -56,35 +58,38 @@ partial class RemoveTile
         // 
         // TileIDField
         // 
-        this.TileIDField.Location = new Point(56, 29);
+        this.TileIDField.Location = new Point(64, 39);
+        this.TileIDField.Margin = new Padding(3, 4, 3, 4);
         this.TileIDField.Name = "TileIDField";
-        this.TileIDField.Size = new Size(124, 23);
+        this.TileIDField.Size = new Size(141, 27);
         this.TileIDField.TabIndex = 2;
         // 
         // label1
         // 
         this.label1.AutoSize = true;
-        this.label1.Location = new Point(23, 32);
+        this.label1.Location = new Point(26, 43);
         this.label1.Name = "label1";
-        this.label1.Size = new Size(18, 15);
+        this.label1.Size = new Size(24, 20);
         this.label1.TabIndex = 3;
         this.label1.Text = "ID";
         // 
         // RemoveTile
         // 
         this.AcceptButton = this.Remove;
-        this.AutoScaleDimensions = new SizeF(7F, 15F);
+        this.AutoScaleDimensions = new SizeF(8F, 20F);
         this.AutoScaleMode = AutoScaleMode.Font;
         this.CancelButton = this.Cancel;
-        this.ClientSize = new Size(193, 116);
+        this.ClientSize = new Size(221, 155);
         this.Controls.Add(this.label1);
         this.Controls.Add(this.TileIDField);
         this.Controls.Add(this.Remove);
         this.Controls.Add(this.Cancel);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.Icon = (Icon)resources.GetObject("$this.Icon");
+        this.Margin = new Padding(3, 4, 3, 4);
         this.MaximizeBox = false;
         this.Name = "RemoveTile";
+        this.ShowIcon = false;
         this.ShowInTaskbar = false;
         this.StartPosition = FormStartPosition.CenterParent;
         this.Text = "Remove Tile";
