@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Security.Policy;
 using Button = MonoGayme.Core.UI.Button;
 using Color = Microsoft.Xna.Framework.Color;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace PicoMapper.States;
 
@@ -72,6 +73,20 @@ public class MainMenu(Mapper window) : State
     public override void Update(GameTime time)
     {
         this.UI.Update(InputHelper.GetMousePosition());
+
+        if (InputHelper.IsKeyDown(Keys.LeftControl))
+        {
+            if (InputHelper.IsKeyPressed(Keys.N))
+            {
+                using Creator creator = new Creator(window);
+                creator.ShowDialog();
+            }
+
+            if (InputHelper.IsKeyPressed(Keys.O))
+            {
+                Utilities.Open(window);
+            }
+        }
     }
 
     public override void Draw(GameTime time, SpriteBatch batch)
