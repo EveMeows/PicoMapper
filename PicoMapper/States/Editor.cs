@@ -447,10 +447,6 @@ public class Editor(Mapper window, Map map, string? path = null) : State, IState
                                 break;
 
                             case Selected.Eraser:
-                                // Skip if selected tile is reserved.
-                                if (this.ActiveTile == 0)
-                                    break;
-
                                 // Skip if are selected but try to draw outside
                                 if (this.selection is not null)
                                     break;
