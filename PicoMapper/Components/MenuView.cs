@@ -41,12 +41,14 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
 
     private readonly Editor editor;
 
-    private readonly float ButtonDelay = 150;
+    private readonly float ButtonDelay = 350;
 
     private bool isUndoing = false;
+    private float undoTimeout = 350;
     private float undoTime = 0;
 
     private bool isRedoing = false;
+    private float redoTimeout = 350;
     private float redoTime = 0;
 
     #region Events
@@ -349,8 +351,13 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         if (this.isUndoing)
         { 
             this.undoTime += delta;
-            if (this.undoTime >= this.ButtonDelay)
+            if (this.undoTime >= this.undoTimeout)
             {
+                if (this.undoTimeout >= this.ButtonDelay)
+                {
+                    this.undoTimeout = 100;
+                }
+
                 this.undoTime = 0;
                 this.editor.Undo();
             }
@@ -359,8 +366,13 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         if (this.isRedoing)
         {
             this.redoTime += delta;
-            if (this.redoTime >= this.ButtonDelay)
+            if (this.redoTime >= this.redoTimeout)
             {
+                if (this.redoTimeout >= this.ButtonDelay)
+                {
+                    this.redoTimeout = 100;
+                }
+
                 this.redoTime = 0;
                 this.editor.Redo();
             }
@@ -370,12 +382,16 @@ public class MenuView : Component, IDrawableComponent, IUpdateableComponent
         {
             this.undoTime = 0;
             this.isUndoing = false;
+
+            this.undoTimeout = this.ButtonDelay;
         }
 
         if (InputHelper.IsKeyUp(Keys.Y) && this.isRedoing)
         {
             this.redoTime = 0;
             this.isRedoing = false;
+
+            this.undoTimeout = this.ButtonDelay;
         }
     }
 
