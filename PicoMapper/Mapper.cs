@@ -14,7 +14,7 @@ public class Mapper : Game
     public StateContext Context { get; } = new StateContext();
     public Vector2 GameSize { get; private set; }
 
-    public string Version { get; } = "0.7.0";
+    public string Version { get; } = "0.8.1";
 
     private void SizeChanged(object? sender, EventArgs e)
     {
